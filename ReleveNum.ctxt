@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=ReleveNum
+comment1.params=
+comment1.target=ReleveNum()
+comment2.params=capteur\ valeur\ unite\ horodatage
+comment2.target=ReleveNum(capteur.Capteur,\ double,\ java.lang.String,\ java.time.LocalDateTime)
+comment3.params=
+comment3.target=double\ getValeur()
+comment4.params=valeur
+comment4.target=void\ setValeur(double)
+comment5.params=
+comment5.target=java.lang.String\ getUnite()
+comment6.params=unite
+comment6.target=void\ setUnite(java.lang.String)
+numComments=7

@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=ReleveGPS
+comment1.params=
+comment1.target=ReleveGPS()
+comment2.params=capteur\ latitude\ longitude\ horodatage
+comment2.target=ReleveGPS(capteur.Capteur,\ double,\ double,\ java.time.LocalDateTime)
+comment3.params=
+comment3.target=double\ getLatitude()
+comment4.params=latitude
+comment4.target=void\ setLatitude(double)
+comment5.params=
+comment5.target=double\ getLongitude()
+comment6.params=longitude
+comment6.target=void\ setLongitude(double)
+numComments=7

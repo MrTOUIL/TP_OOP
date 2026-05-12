@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Environemental
+comment1.params=
+comment1.target=Environemental()
+comment2.params=temperature\ humidite\ pluviometrie
+comment2.target=Environemental(double,\ double,\ double)
+comment3.params=
+comment3.target=double\ getHumidite()
+comment4.params=humidite
+comment4.target=void\ setHumidite(double)
+comment5.params=
+comment5.target=double\ getPluviometrie()
+comment6.params=pluviometrie
+comment6.target=void\ setPluviometrie(double)
+numComments=7

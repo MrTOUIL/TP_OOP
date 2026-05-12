@@ -1,0 +1,19 @@
+#BlueJ class context
+comment0.target=Releve
+comment1.params=
+comment1.target=Releve()
+comment2.params=capteur\ horodatage
+comment2.target=Releve(capteur.Capteur,\ java.time.LocalDateTime)
+comment3.params=
+comment3.target=capteur.Alerte\ getAlt()
+comment4.params=alt
+comment4.target=void\ setAlt(capteur.Alerte)
+comment5.params=
+comment5.target=java.time.LocalDateTime\ getHorodatage()
+comment6.params=horodatage
+comment6.target=void\ setHorodatage(java.time.LocalDateTime)
+comment7.params=
+comment7.target=capteur.Capteur\ getCapteur()
+comment8.params=capteur
+comment8.target=void\ setCapteur(capteur.Capteur)
+numComments=9

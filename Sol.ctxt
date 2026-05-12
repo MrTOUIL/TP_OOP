@@ -1,0 +1,19 @@
+#BlueJ class context
+comment0.target=Sol
+comment1.params=
+comment1.target=Sol()
+comment2.params=temperature\ PH\ humidite\ azote
+comment2.target=Sol(double,\ double,\ double,\ double)
+comment3.params=
+comment3.target=double\ getPH()
+comment4.params=PH
+comment4.target=void\ setPH(double)
+comment5.params=
+comment5.target=double\ getHumidite()
+comment6.params=humidite
+comment6.target=void\ setHumidite(double)
+comment7.params=
+comment7.target=double\ getAzote()
+comment8.params=azote
+comment8.target=void\ setAzote(double)
+numComments=9

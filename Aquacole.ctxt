@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Aquacole
+comment1.params=nom
+comment1.target=Aquacole(java.lang.String)
+comment2.params=
+comment2.target=java.util.List\ getAquarium()
+comment3.params=poisson
+comment3.target=boolean\ ajouterPoisson(modele.Poisson)
+comment4.params=poisson
+comment4.target=boolean\ retirerPoisson(modele.Poisson)
+comment5.params=
+comment5.target=modele.ProgrammeAlimentaire\ getProgrammeAlimentaire()
+comment6.params=programmeAlimentaire
+comment6.target=void\ setProgrammeAlimentaire(modele.ProgrammeAlimentaire)
+numComments=7

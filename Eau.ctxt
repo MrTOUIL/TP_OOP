@@ -1,0 +1,11 @@
+#BlueJ class context
+comment0.target=Eau
+comment1.params=
+comment1.target=Eau()
+comment2.params=temperature\ oxygene
+comment2.target=Eau(double,\ double)
+comment3.params=
+comment3.target=double\ getOxygene()
+comment4.params=oxygene
+comment4.target=void\ setOxygene(double)
+numComments=5

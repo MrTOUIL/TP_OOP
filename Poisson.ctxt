@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Poisson
+comment1.params=
+comment1.target=Poisson()
+comment2.params=espece\ pg
+comment2.target=Poisson(java.lang.String,\ modele.ProgrammeAlimentaire)
+comment3.params=
+comment3.target=java.lang.String\ getEspece()
+comment4.params=espece
+comment4.target=void\ setEspece(java.lang.String)
+comment5.params=
+comment5.target=modele.ProgrammeAlimentaire\ getPg()
+comment6.params=pg
+comment6.target=void\ setPg(modele.ProgrammeAlimentaire)
+numComments=7

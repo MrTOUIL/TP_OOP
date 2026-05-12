@@ -1,0 +1,15 @@
+#BlueJ class context
+comment0.target=Animalerie
+comment1.params=nom
+comment1.target=Animalerie(java.lang.String)
+comment2.params=
+comment2.target=java.util.Set\ getKouri()
+comment3.params=animal
+comment3.target=boolean\ ajouterAnimal(modele.Animal)
+comment4.params=animal
+comment4.target=boolean\ retirerAnimal(modele.Animal)
+comment5.params=
+comment5.target=modele.ProgrammeAlimentaire\ getProgrammeAlimentaire()
+comment6.params=programmeAlimentaire
+comment6.target=void\ setProgrammeAlimentaire(modele.ProgrammeAlimentaire)
+numComments=7

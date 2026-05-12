@@ -1,0 +1,21 @@
+#BlueJ class context
+comment0.target=Culture
+comment1.params=nom
+comment1.target=Culture(java.lang.String)
+comment2.params=
+comment2.target=java.util.List\ getTerre()
+comment3.params=
+comment3.target=double\ getSeuil_abs()
+comment4.params=seuil_abs
+comment4.target=void\ setSeuil_abs(double)
+comment5.params=
+comment5.target=double\ getSeuil_ord()
+comment6.params=seuil_ord
+comment6.target=void\ setSeuil_ord(double)
+comment7.params=plantation
+comment7.target=boolean\ ajouterPlantation(modele.Plantation)
+comment8.params=plantation
+comment8.target=boolean\ retirerPlantation(modele.Plantation)
+comment9.params=plantation\ stade
+comment9.target=void\ mettreAJourStade(modele.Plantation,\ modele.Stadedecroissance)
+numComments=10
