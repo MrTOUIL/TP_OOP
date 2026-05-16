@@ -1,0 +1,382 @@
+╔═══════════════════════════════════════════════════════════════════════╗
+║           GUIDE DE TEST PRATIQUE - CHECKLIST INTERACTIVE              ║
+║        Vérification opérationnelle de toutes les fonctionnalités       ║
+╚═══════════════════════════════════════════════════════════════════════╝
+
+INSTRUCTIONS:
+Lancer le programme avec: java Ferme
+Suivre chaque test numéroté ci-dessous et noter les observations
+
+══════════════════════════════════════════════════════════════════════════
+🟢 TEST 1: GESTION DES ZONES
+══════════════════════════════════════════════════════════════════════════
+
+TEST 1.1: Ajouter une zone Culture
+├─ Étapes:
+│  1. Main Menu → [1] Gestion des zones
+│  2. Sous-menu → [1] Ajouter une zone
+│  3. Choisir type → 1 (Culture)
+│  4. Entrer nom: "Champ Blé"
+├─ Résultat attendu:
+│  ✓ Message "Zone créée avec succès" affiché
+│  ✓ L'ID de la zone est affiché
+├─ Vérification:
+│  [1] Lister zones → "1. Champ Blé (Culture) - 🟢 ACTIF - 0 entité(s)"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 1.2: Ajouter une zone Animalerie et une Aquacole
+├─ Étapes:
+│  1. Ajouter zone type 2 (Animalerie): "Bergerie"
+│  2. Ajouter zone type 3 (Aquacole): "Bassins"
+├─ Résultat attendu:
+│  ✓ 2 nouvelles zones créées
+├─ Vérification:
+│  [1] Lister zones → affiche 3 zones
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 1.3: Modifier l'état d'une zone (activer/désactiver)
+├─ Étapes:
+│  1. Gestion des zones → [3] Gérer l'état d'une zone
+│  2. Choisir zone "Champ Blé"
+│  3. Choisir action "Désactiver"
+├─ Résultat attendu:
+│  ✓ Zone passe à 🔴 SUSPENDU
+├─ Vérification:
+│  [1] Lister zones → "Champ Blé (Culture) - 🔴 SUSPENDU"
+│  1. Réactiver zone
+│  [1] Lister zones → "Champ Blé (Culture) - 🟢 ACTIF"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 1.4: Enregistrer la production d'une zone
+├─ Étapes:
+│  1. Gestion des zones → [5] Enregistrer production
+│  2. Choisir zone "Champ Blé"
+│  3. Entrer valeur: 100 (kg)
+│  4. Répéter avec une autre zone: Bergerie = 50
+├─ Résultat attendu:
+│  ✓ Productions enregistrées
+├─ Vérification:
+│  [4] Voir détails zone → "Production: 1 fois" (ou N fois)
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 1.5: Afficher vue d'ensemble
+├─ Étapes:
+│  1. Gestion des zones → [2] Lister les zones
+├─ Résultat attendu:
+│  ✓ Affiche toutes 3 zones avec:
+│    - Numéro et nom
+│    - Type (Culture/Animalerie/Aquacole)
+│    - État (🟢 ACTIF ou 🔴 SUSPENDU)
+│    - Nombre d'entités
+└─ STATUS: ____ PASS / ____ FAIL
+
+══════════════════════════════════════════════════════════════════════════
+🟢 TEST 2: GESTION DES CULTURES
+══════════════════════════════════════════════════════════════════════════
+
+TEST 2.1: Enregistrer une culture complète
+├─ Étapes:
+│  1. Main Menu → [2] Gestion des cultures
+│  2. Sous-menu → [1] Ajouter une culture
+│  3. Remplir le formulaire:
+│     - Zone: "Champ Blé"
+│     - Date plantation: 2026-02-01
+│     - Date récolte: 2026-06-15
+│     - Stade: Croissance (2)
+│     - pH minimum: 6.0
+│     - pH maximum: 7.5
+│     - Humidité: 60.0
+├─ Résultat attendu:
+│  ✓ "Plantation ajoutée à la zone" affiché
+├─ Vérification:
+│  [1] Lister zones → "Champ Blé (Culture) - 🟢 ACTIF - 1 entité(s)"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 2.2: Ajouter plusieurs cultures et vérifier le stade
+├─ Étapes:
+│  1. Ajouter 2-3 cultures avec des stades différents
+│     - Culture 1: Semis
+│     - Culture 2: Maturite
+│     - Culture 3: Recolte
+├─ Résultat attendu:
+│  ✓ Zones montrent nombre d'entités augmenté
+├─ Vérification:
+│  [2] Lister les cultures → Affiche toutes cultures avec stade:
+│    "Stade: Semis | Croissance: 2026-04-01 | Récolte: 2026-08-01"
+│  [4] Détails zone → Affiche cultures avec exigences pédologiques
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 2.3: Rapport d'état des cultures par zone
+├─ Étapes:
+│  1. Gestion des cultures → [2] Lister les cultures
+├─ Résultat attendu:
+│  ✓ Affiche par zone Culture:
+│    - Numéro
+│    - Dates (plantation, récolte)
+│    - Stade actuel
+│    - Exigences (pH min/max, humidité)
+├─ Remarque:
+│  - Si vous avez créé cultures dans plusieurs zones,
+│    chaque zone Culture affiche ses cultures
+└─ STATUS: ____ PASS / ____ FAIL
+
+══════════════════════════════════════════════════════════════════════════
+🟢 TEST 3: GESTION DES ANIMAUX
+══════════════════════════════════════════════════════════════════════════
+
+TEST 3.1: Enregistrer un animal terrestre
+├─ Étapes:
+│  1. Main Menu → [3] Gestion des animaux
+│  2. Sous-menu → [1] Ajouter un animal
+│  3. Remplir le formulaire:
+│     - Zone Animalerie: "Bergerie"
+│     - Espèce: Ruminant (1) ou Volaille (2)
+│     - Âge: 3 (ans)
+│     - Poids: 150 (kg)
+│     - Quantité alim: 25 (kg/jour)
+│     - Type aliment: "Fourrage" ou "Grains"
+├─ Résultat attendu:
+│  ✓ "Animal créé avec succès" affiché
+├─ Vérification:
+│  [1] Lister zones → "Bergerie (Animalerie) - 🟢 ACTIF - 1 entité(s)"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 3.2: Ajouter plusieurs animaux et vérifier Programme Alimentation
+├─ Étapes:
+│  1. Ajouter 2-3 animaux:
+│     - Animal 1: Ruminant 25kg Fourrage
+│     - Animal 2: Volaille 0.15kg Grains
+│     - Animal 3: Ruminant 30kg Foin
+├─ Résultat attendu:
+│  ✓ Animaux créés
+├─ Vérification:
+│  [3] Lister les animaux → Affiche:
+│    "Ruminant: 25.0kg de Fourrage"
+│    "Volaille: 0.15kg de Grains"
+│    "Ruminant: 30.0kg de Foin"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 3.3: Enregistrer un événement sanitaire
+├─ Étapes:
+│  1. Gestion des animaux → [4] Enregistrer événement sanitaire
+│  2. Remplir le formulaire:
+│     - Zone: "Bergerie"
+│     - Animal: choisir un animal créé
+│     - Description: "Infection gastrique"
+│     - Variation de poids: -5 (kg)
+├─ Résultat attendu:
+│  ✓ "Événement enregistré" affiché
+├─ Vérification:
+│  [5] Voir résumé global → affiche événements sanitaires
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 3.4: Gérer les poissons (Aquacole)
+├─ Étapes:
+│  1. Gestion des animaux → [2] Ajouter un poisson
+│  2. Remplir le formulaire:
+│     - Zone Aquacole: "Bassins"
+│     - Espèce: "Truite" ou "Carpe"
+│     - Quantité alimentation: 100 (kg/jour)
+├─ Résultat attendu:
+│  ✓ "Poisson ajouté avec succès" affiché
+├─ Vérification:
+│  [1] Lister zones → "Bassins (Aquacole) - 🟢 ACTIF - 1 entité(s)"
+│  [3] Lister les animaux → Affiche poisson avec type alimentation
+└─ STATUS: ____ PASS / ____ FAIL
+
+══════════════════════════════════════════════════════════════════════════
+🟢 TEST 4: GESTION DES CAPTEURS
+══════════════════════════════════════════════════════════════════════════
+
+TEST 4.1: Ajouter des capteurs de tous types
+├─ Étapes:
+│  1. Main Menu → [4] Gestion des capteurs
+│  2. Sous-menu → [1] Ajouter un capteur
+│  3. Pour chaque type (1-5):
+│     - Type 1: Environnemental (température)
+│     - Type 2: Sol (humidité)
+│     - Type 3: Eau (qualité)
+│     - Type 4: GPS (position)
+│     - Type 5: Biométrique (animaux)
+│  4. Entrer seuils:
+│     - Min: 10, Max: 30
+├─ Résultat attendu:
+│  ✓ Chaque capteur affiché avec "Capteur créé avec succès"
+├─ Vérification:
+│  [2] Lister capteurs → Affiche tous avec:
+│    "Environnemental - 🟢 ACTIF | Seuils: 10 à 30"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 4.2: Enregistrer des relevés numériques
+├─ Étapes:
+│  1. Gestion des capteurs → [3] Enregistrer un relevé
+│  2. Choisir type capteur "Environnemental"
+│  3. Entrer valeur: 22.5 (dans les seuils: OK)
+│  4. Entrer unité: °C
+├─ Résultat attendu:
+│  ✓ "Relevé enregistré" affiché
+│  ✓ Pas d'alerte (valeur dans seuils)
+├─ Vérification:
+│  [4] Voir historique relevés → Affiche:
+│    "ReleveNum | Capteur: Environnemental | Valeur: 22.5 °C | ..."
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 4.3: Enregistrer des relevés GPS
+├─ Étapes:
+│  1. Gestion des capteurs → [3] Enregistrer un relevé
+│  2. Choisir type capteur "GPS"
+│  3. Entrer latitude: 48.8566
+│  4. Entrer longitude: 2.3522
+├─ Résultat attendu:
+│  ✓ "Relevé GPS enregistré" affiché
+├─ Vérification:
+│  [4] Voir historique relevés → Affiche:
+│    "ReleveGPS | Capteur: GPS | Lat: 48.8566, Long: 2.3522 | ..."
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 4.4: Vérifier détection automatique de seuil dépassé
+├─ Étapes:
+│  1. Gestion des capteurs → [3] Enregistrer un relevé
+│  2. Choisir "Environnemental"
+│  3. Entrer valeur HORS seuils: 35 (seuil max = 30)
+├─ Résultat attendu:
+│  ✓ Message d'alerte affiché:
+│    "⚠ Alerte Critique: Valeur 35 dépasse le seuil maximum (30)"
+│  ✓ Alerte créée automatiquement
+├─ Vérification:
+│  [5] Gestion des alertes → [1] Voir alertes actives
+│    → Alerte visible avec 🔴 Critique
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 4.5: Changer statut d'un capteur (actif/suspendu)
+├─ Étapes:
+│  1. Gestion des capteurs → [2] Lister capteurs
+│  2. Gestion des capteurs → [5] Gérer état capteur
+│  3. Choisir un capteur
+│  4. Action: "Désactiver"
+├─ Résultat attendu:
+│  ✓ Capteur passe à 🔴 SUSPENDU
+├─ Vérification:
+│  [2] Lister capteurs → "Environnemental - 🔴 SUSPENDU | Seuils: 10 à 30"
+│  1. Réactiver capteur
+│  [2] Lister capteurs → "Environnemental - 🟢 ACTIF | Seuils: 10 à 30"
+└─ STATUS: ____ PASS / ____ FAIL
+
+══════════════════════════════════════════════════════════════════════════
+🟢 TEST 5: GESTION DU SYSTÈME D'ALERTES
+══════════════════════════════════════════════════════════════════════════
+
+TEST 5.1: Vérifier déclenchement automatique des alertes
+├─ Étapes:
+│  1. [4.4] Si pas encore fait: enregistrer relevé hors seuils
+│  2. Vérifier que alerte est créée automatiquement
+├─ Résultat attendu:
+│  ✓ Alerte créée sans intervention manuelle
+│  ✓ Alerte a gravité "Critique"
+│  ✓ Message explicite: "Valeur X dépasse le seuil Y"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 5.2: Afficher alertes actives triées par gravité
+├─ Étapes:
+│  1. Main Menu → [5] Gestion des alertes
+│  2. Sous-menu → [1] Afficher alertes actives
+├─ Résultat attendu:
+│  ✓ Alertes affichées avec:
+│    - Numéro séquentiel
+│    - 🔴 Critique (en premier)
+│    - Message détaillé
+│    - Date de création
+│  ✓ Alertes triées par gravité (Critique avant Avertissement)
+├─ Remarque:
+│  - Si plusieurs alertes non acquittées → tous affichées
+│  - Acquittées = exclus de cette vue
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 5.3: Acquitter une alerte
+├─ Étapes:
+│  1. Gestion des alertes → [2] Acquitter une alerte
+│  2. Choisir alerte à acquitter
+├─ Résultat attendu:
+│  ✓ "Alerte acquittée" affiché
+│  ✓ Alerte n'apparaît plus dans [1] Alertes actives
+├─ Vérification:
+│  [1] Afficher alertes actives → Alerte disparue
+│  [4] Voir historique alertes → Alerte visible avec "✓ ACQUITTÉE"
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 5.4: Supprimer une alerte
+├─ Étapes:
+│  1. Gestion des alertes → [3] Supprimer une alerte
+│  2. Choisir une alerte (non acquittée de préférence)
+├─ Résultat attendu:
+│  ✓ "Alerte supprimée" affiché
+│  ✓ Alerte supprimée de toutes les listes
+├─ Vérification:
+│  [4] Voir historique → Alerte ne doit PAS apparaître
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 5.5: Consulter historique complet des alertes
+├─ Étapes:
+│  1. Gestion des alertes → [4] Voir historique alertes
+├─ Résultat attendu:
+│  ✓ Affiche TOUTES les alertes (actives ET acquittées):
+│    - Numéro séquentiel
+│    - Gravité (Critique, Avertissement)
+│    - État: "✓ ACQUITTÉE" ou "⚠ ACTIVE"
+│    - Message complet
+│    - Date de création
+├─ Remarque:
+│  - Alertes supprimées ne doivent pas apparaître
+│  - Alertes acquittées affichées avec ✓
+│  - Alertes actives affichées avec ⚠
+└─ STATUS: ____ PASS / ____ FAIL
+
+══════════════════════════════════════════════════════════════════════════
+🔵 TESTS ADDITIONNELS: VUE GLOBALE
+══════════════════════════════════════════════════════════════════════════
+
+TEST 6.1: Résumé global
+├─ Étapes:
+│  1. Main Menu → [6] Voir résumé global
+├─ Résultat attendu:
+│  ✓ Affiche:
+│    - Nombre de zones (3)
+│    - Nombre de cultures (1+)
+│    - Nombre d'animaux (2+)
+│    - Nombre de capteurs (5)
+│    - Nombre d'alertes (1+)
+│    - État général (pourcentage d'éléments actifs)
+└─ STATUS: ____ PASS / ____ FAIL
+
+TEST 6.2: Détails d'une zone complète
+├─ Étapes:
+│  1. Gestion des zones → [4] Afficher détails zone
+│  2. Choisir zone "Champ Blé" (Culture)
+├─ Résultat attendu:
+│  ✓ Affiche:
+│    - Nom et ID
+│    - Type (Culture)
+│    - État (ACTIF/SUSPENDU)
+│    - Cultures affichées avec détails (dates, stade, pH, humidité)
+│    - Production (nb fois)
+│    - Capteurs associés (avec seuils)
+│    - Alertes associées
+└─ STATUS: ____ PASS / ____ FAIL
+
+══════════════════════════════════════════════════════════════════════════
+
+📊 RÉSUMÉ DE TESTS
+
+Tests zone: __/5 PASS
+Tests cultures: __/3 PASS
+Tests animaux: __/4 PASS
+Tests capteurs: __/5 PASS
+Tests alertes: __/5 PASS
+Tests globaux: __/2 PASS
+
+TOTAL: __/24 TESTS
+
+✅ Si TOUS les tests sont PASS → TP 100% CONFORME
+⚠️  Si CERTAINS tests sont FAIL → Vérifier point spécifique
+
+══════════════════════════════════════════════════════════════════════════
