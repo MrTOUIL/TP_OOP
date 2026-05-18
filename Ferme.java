@@ -13,8 +13,11 @@ public class Ferme {
     private final List<EvenementSanitaire> evenementsSanitaires = new ArrayList<>();
     private final List<Alerte> historiqueAlertes = new ArrayList<>();
 
-    public boolean ajouterZone(ZoneGeographique zone) {
-        return zone != null && zones.add(zone);
+    public boolean ajouterZone(ZoneGeographique zone) throws FermeException {
+        if (zone == null) {
+            throw new FermeException("Erreur: La zone ne peut pas être null");
+        }
+        return zones.add(zone);
     }
 
     public List<ZoneGeographique> getZones() {
@@ -47,20 +50,59 @@ public class Ferme {
         }
     }
 
-    public boolean ajouterCapteur(ZoneGeographique zone, Capteur capteur) {
-        return zone != null && zone.ajouterCapteur(capteur);
+    public boolean ajouterCapteur(ZoneGeographique zone, Capteur capteur) throws FermeException {
+        if (zone == null) {
+            throw new FermeException("Erreur: La zone ne peut pas être null");
+        }
+        if (capteur == null) {
+            throw new FermeException("Erreur: Le capteur ne peut pas être null");
+        }
+        if (capteur.getSeuilMin() >= capteur.getSeuilMax()) {
+            throw new FermeException("Erreur: Le seuil minimum doit être inférieur au seuil maximum");
+        }
+        return zone.ajouterCapteur(capteur);
     }
 
-    public boolean ajouterAnimal(Animalerie zone, Animal animal) {
-        return zone != null && zone.ajouterAnimal(animal);
+    public boolean ajouterAnimal(Animalerie zone, Animal animal) throws FermeException {
+        if (zone == null) {
+            throw new FermeException("Erreur: La zone animalerie ne peut pas être null");
+        }
+        if (animal == null) {
+            throw new FermeException("Erreur: L'animal ne peut pas être null");
+        }
+        if (animal.getAge() < 0) {
+            throw new FermeException("Erreur: L'âge de l'animal ne peut pas être négatif");
+        }
+        if (animal.getPoids() <= 0) {
+            throw new FermeException("Erreur: Le poids de l'animal doit être positif");
+        }
+        return zone.ajouterAnimal(animal);
     }
 
-    public boolean ajouterCulture(Culture zone, Plantation plantation) {
-        return zone != null && zone.ajouterPlantation(plantation);
+    public boolean ajouterCulture(Culture zone, Plantation plantation) throws FermeException {
+        if (zone == null) {
+            throw new FermeException("Erreur: La zone culture ne peut pas être null");
+        }
+        if (plantation == null) {
+            throw new FermeException("Erreur: La plantation ne peut pas être null");
+        }
+        if (plantation.getDate_plant() == null || plantation.getDate_rec() == null) {
+            throw new FermeException("Erreur: Les dates de plantation et de récolte ne peuvent pas être null");
+        }
+        if (plantation.getDate_plant().isAfter(plantation.getDate_rec())) {
+            throw new FermeException("Erreur: La date de plantation doit être antérieure à la date de récolte");
+        }
+        return zone.ajouterPlantation(plantation);
     }
 
-    public boolean ajouterPoisson(Aquacole zone, Poisson poisson) {
-        return zone != null && zone.ajouterPoisson(poisson);
+    public boolean ajouterPoisson(Aquacole zone, Poisson poisson) throws FermeException {
+        if (zone == null) {
+            throw new FermeException("Erreur: La zone aquacole ne peut pas être null");
+        }
+        if (poisson == null) {
+            throw new FermeException("Erreur: Le poisson ne peut pas être null");
+        }
+        return zone.ajouterPoisson(poisson);
     }
 
     public void enregistrerProduction(ZoneGeographique zone, double valeur) {
@@ -79,9 +121,15 @@ public class Ferme {
         return Collections.unmodifiableList(evenementsSanitaires);
     }
 
-    public void enregistrerReleve(Capteur capteur, Releve releve) {
-        if (capteur == null || releve == null || !capteur.isActif()) {
-            return;
+    public void enregistrerReleve(Capteur capteur, Releve releve) throws FermeException {
+        if (capteur == null) {
+            throw new FermeException("Erreur: Le capteur ne peut pas être null");
+        }
+        if (releve == null) {
+            throw new FermeException("Erreur: Le relevé ne peut pas être null");
+        }
+        if (!capteur.isActif()) {
+            throw new FermeException("Erreur: Le capteur n'est pas actif");
         }
         releve.setCapteur(capteur);
         capteur.ajouterReleve(releve);
@@ -100,9 +148,23 @@ public class Ferme {
         }
     }
 
-    public boolean enregistrerReleveGps(Capteur capteur, ReleveGPS releveGps) {
-        if (capteur == null || releveGps == null || !capteur.isActif()) {
-            return false;
+    public boolean enregistrerReleveGps(Capteur capteur, ReleveGPS releveGps) throws FermeException {
+        if (capteur == null) {
+            throw new FermeException("Erreur: Le capteur ne peut pas être null");
+        }
+        if (releveGps == null) {
+            throw new FermeException("Erreur: Le relevé GPS ne peut pas être null");
+        }
+        if (!capteur.isActif()) {
+            throw new FermeException("Erreur: Le capteur n'est pas actif");
+        }
+        
+        // Valider les coordonnées GPS
+        if (releveGps.getLatitude() < -90 || releveGps.getLatitude() > 90) {
+            throw new FermeException("Erreur: Latitude invalide (doit être entre -90 et 90)");
+        }
+        if (releveGps.getLongitude() < -180 || releveGps.getLongitude() > 180) {
+            throw new FermeException("Erreur: Longitude invalide (doit être entre -180 et 180)");
         }
 
         releveGps.setCapteur(capteur);
@@ -304,27 +366,36 @@ public class Ferme {
         System.out.println("  3. Aquacole (bassins de poissons)");
         System.out.print("→ Choix: ");
         
-        String type = scanner.nextLine().trim();
-        System.out.print("Nom de la zone: ");
-        String nom = scanner.nextLine().trim();
+        try {
+            String type = scanner.nextLine().trim();
+            System.out.print("Nom de la zone: ");
+            String nom = scanner.nextLine().trim();
+            
+            if (nom == null || nom.isEmpty()) {
+                System.out.println("❌ Le nom de la zone ne peut pas être vide.");
+                return;
+            }
 
-        ZoneGeographique zone = null;
-        if ("1".equals(type)) {
-            zone = new Culture(nom);
-            System.out.println("✓ Zone Culture créée: " + nom);
-        } else if ("2".equals(type)) {
-            zone = new Animalerie(nom);
-            System.out.println("✓ Zone Animalerie créée: " + nom);
-        } else if ("3".equals(type)) {
-            zone = new Aquacole(nom);
-            System.out.println("✓ Zone Aquacole créée: " + nom);
-        } else {
-            System.out.println(" Type de zone invalide.");
-            return;
-        }
+            ZoneGeographique zone = null;
+            if ("1".equals(type)) {
+                zone = new Culture(nom);
+                System.out.println("✓ Zone Culture créée: " + nom);
+            } else if ("2".equals(type)) {
+                zone = new Animalerie(nom);
+                System.out.println("✓ Zone Animalerie créée: " + nom);
+            } else if ("3".equals(type)) {
+                zone = new Aquacole(nom);
+                System.out.println("✓ Zone Aquacole créée: " + nom);
+            } else {
+                System.out.println("❌ Type de zone invalide.");
+                return;
+            }
 
-        if (ferme.ajouterZone(zone)) {
-            System.out.println("✓ Zone ajoutée avec succès (ID: " + zone.getId() + ")");
+            if (ferme.ajouterZone(zone)) {
+                System.out.println("✓ Zone ajoutée avec succès (ID: " + zone.getId() + ")");
+            }
+        } catch (FermeException e) {
+            System.out.println("❌ " + e.getMessage());
         }
     }
 
@@ -454,7 +525,9 @@ public class Ferme {
             System.out.println("║          GESTION DES CULTURES                       ║");
             System.out.println("╠════════════════════════════════════════════════════╣");
             System.out.println("║ 1. Ajouter une culture                             ║");
-            System.out.println("║ 2. Lister toutes les cultures                      ║");
+            System.out.println("║ 2. Mettre à jour le stade de croissance             ║");
+            System.out.println("║ 3. Afficher le stade de croissance                  ║");
+            System.out.println("║ 4. Générer un rapport des cultures                  ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
             System.out.print("→ Votre choix: ");
@@ -465,7 +538,13 @@ public class Ferme {
                     ajouterCultureInteractif(scanner, ferme);
                     break;
                 case "2":
-                    listerCultures(ferme);
+                    mettreAJourStadeCultureInteractif(scanner, ferme);
+                    break;
+                case "3":
+                    afficherStadesCultures(ferme);
+                    break;
+                case "4":
+                    genererRapportCultures(ferme);
                     break;
                 case "0":
                     continuer = false;
@@ -480,26 +559,30 @@ public class Ferme {
         Culture culture = (Culture) choisirZoneParType(scanner, ferme, Culture.class);
         if (culture == null) return;
 
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║     AJOUTER UNE CULTURE                 ║");
-        System.out.println("╚════════════════════════════════════════╝");
-        
-        System.out.print("Date de plantation (yyyy-MM-dd): ");
-        LocalDate plant = lireDate(scanner.nextLine());
-        System.out.print("Date de récolte (yyyy-MM-dd): ");
-        LocalDate recolte = lireDate(scanner.nextLine());
-        System.out.print("Stade (Semis/Croissance/Maturite/Recolte): ");
-        Stadedecroissance stade = lireStade(scanner.nextLine());
-        System.out.print("pH min: ");
-        double phMin = lireDouble(scanner.nextLine());
-        System.out.print("pH max: ");
-        double phMax = lireDouble(scanner.nextLine());
-        System.out.print("Humidité (%): ");
-        double humidite = lireDouble(scanner.nextLine());
+        try {
+            System.out.println("\n╔════════════════════════════════════════╗");
+            System.out.println("║     AJOUTER UNE CULTURE                 ║");
+            System.out.println("╚════════════════════════════════════════╝");
+            
+            System.out.print("Date de plantation (yyyy-MM-dd): ");
+            LocalDate plant = lireDate(scanner.nextLine());
+            System.out.print("Date de récolte (yyyy-MM-dd): ");
+            LocalDate recolte = lireDate(scanner.nextLine());
+            System.out.print("Stade (Semis/Croissance/Maturite/Recolte): ");
+            Stadedecroissance stade = lireStade(scanner.nextLine());
+            System.out.print("pH min: ");
+            double phMin = lireDouble(scanner.nextLine());
+            System.out.print("pH max: ");
+            double phMax = lireDouble(scanner.nextLine());
+            System.out.print("Humidité (%): ");
+            double humidite = lireDouble(scanner.nextLine());
 
-        Plantation plantation = new Plantation(plant, recolte, stade, phMax, phMin, humidite);
-        if (ferme.ajouterCulture(culture, plantation)) {
-            System.out.println("✓ Culture ajoutée avec succès");
+            Plantation plantation = new Plantation(plant, recolte, stade, phMax, phMin, humidite);
+            if (ferme.ajouterCulture(culture, plantation)) {
+                System.out.println("✓ Culture ajoutée avec succès");
+            }
+        } catch (FermeException e) {
+            System.out.println("❌ " + e.getMessage());
         }
     }
 
@@ -535,6 +618,107 @@ public class Ferme {
         }
     }
 
+    private static void mettreAJourStadeCultureInteractif(Scanner scanner, Ferme ferme) {
+        Culture culture = (Culture) choisirZoneParType(scanner, ferme, Culture.class);
+        if (culture == null) {
+            return;
+        }
+
+        if (culture.getTerre().isEmpty()) {
+            System.out.println("⚠ Aucune plantation dans cette zone.");
+            return;
+        }
+
+        System.out.println("\nPlantations disponibles dans la zone " + culture.getNom() + ":");
+        List<Plantation> plantations = new ArrayList<>(culture.getTerre());
+        for (int i = 0; i < plantations.size(); i++) {
+            Plantation plantation = plantations.get(i);
+            System.out.println((i + 1) + ". Semis: " + plantation.getDate_plant() +
+                " | Récolte: " + plantation.getDate_rec() + " | Stade actuel: " + plantation.getEpan());
+        }
+
+        System.out.print("→ Sélectionner une plantation: ");
+        int index = lireInt(scanner.nextLine()) - 1;
+        if (index < 0 || index >= plantations.size()) {
+            System.out.println("❌ Sélection invalide.");
+            return;
+        }
+
+        System.out.print("Nouveau stade (Semis/Croissance/Maturite/Recolte): ");
+        Stadedecroissance nouveauStade = lireStade(scanner.nextLine());
+        plantations.get(index).setEpan(nouveauStade);
+        System.out.println("✓ Stade de croissance mis à jour: " + nouveauStade);
+    }
+
+    private static void afficherStadesCultures(Ferme ferme) {
+        List<ZoneGeographique> zones = ferme.getZones();
+        boolean trouve = false;
+
+        System.out.println("\n╔════════════════════════════════════════════════════╗");
+        System.out.println("║        STADES DE CROISSANCE DES CULTURES           ║");
+        System.out.println("╚════════════════════════════════════════════════════╝");
+
+        for (ZoneGeographique zone : zones) {
+            if (zone instanceof Culture) {
+                Culture culture = (Culture) zone;
+                System.out.println("\nZone: " + culture.getNom());
+                if (culture.getTerre().isEmpty()) {
+                    System.out.println("  Aucune plantation");
+                } else {
+                    int idx = 1;
+                    for (Plantation plantation : culture.getTerre()) {
+                        System.out.println("  " + idx + ". Semis: " + plantation.getDate_plant() +
+                            " | Récolte: " + plantation.getDate_rec() +
+                            " | Stade: " + plantation.getEpan());
+                        idx++;
+                    }
+                }
+                trouve = true;
+            }
+        }
+
+        if (!trouve) {
+            System.out.println("⚠ Aucune zone de culture disponible.");
+        }
+    }
+
+    private static void genererRapportCultures(Ferme ferme) {
+        List<ZoneGeographique> zones = ferme.getZones();
+        boolean trouve = false;
+
+        System.out.println("\n╔════════════════════════════════════════════════════╗");
+        System.out.println("║       RAPPORT DE L'ÉTAT DES CULTURES               ║");
+        System.out.println("╚════════════════════════════════════════════════════╝");
+
+        for (ZoneGeographique zone : zones) {
+            if (zone instanceof Culture) {
+                Culture culture = (Culture) zone;
+                System.out.println("\nZone: " + culture.getNom() +
+                    " | Statut: " + (culture.isActif() ? "ACTIF" : "SUSPENDU") +
+                    " | Plantations: " + culture.getTerre().size());
+
+                if (culture.getTerre().isEmpty()) {
+                    System.out.println("  Aucune plantation enregistrée.");
+                } else {
+                    int idx = 1;
+                    for (Plantation plantation : culture.getTerre()) {
+                        System.out.println("  " + idx + ". Semis: " + plantation.getDate_plant() +
+                            " | Récolte: " + plantation.getDate_rec() +
+                            " | Stade: " + plantation.getEpan() +
+                            " | pH: " + plantation.getPhMin() + "-" + plantation.getPhMax() +
+                            " | Humidité: " + plantation.getHumidite() + "%");
+                        idx++;
+                    }
+                }
+                trouve = true;
+            }
+        }
+
+        if (!trouve) {
+            System.out.println("⚠ Aucune zone de culture disponible.");
+        }
+    }
+
     // ========== GESTION DES ANIMAUX ==========
     private static void menuGestionAnimaux(Scanner scanner, Ferme ferme) {
         boolean continuer = true;
@@ -545,7 +729,8 @@ public class Ferme {
             System.out.println("║ 1. Ajouter un animal                               ║");
             System.out.println("║ 2. Ajouter un poisson                              ║");
             System.out.println("║ 3. Lister les animaux                              ║");
-            System.out.println("║ 4. Enregistrer événement sanitaire                 ║");
+            System.out.println("║ 4. Afficher le programme d'alimentation            ║");
+            System.out.println("║ 5. Enregistrer événement sanitaire                 ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
             System.out.print("→ Votre choix: ");
@@ -562,6 +747,9 @@ public class Ferme {
                     listerAnimaux(ferme);
                     break;
                 case "4":
+                    afficherProgrammesAlimentaires(ferme);
+                    break;
+                case "5":
                     enregistrerEvenementSanitaireInteractif(scanner, ferme);
                     break;
                 case "0":
@@ -577,30 +765,54 @@ public class Ferme {
         Animalerie animalerie = (Animalerie) choisirZoneParType(scanner, ferme, Animalerie.class);
         if (animalerie == null) return;
 
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║     AJOUTER UN ANIMAL                   ║");
-        System.out.println("╚════════════════════════════════════════╝");
+        try {
+            System.out.println("\n╔════════════════════════════════════════╗");
+            System.out.println("║     AJOUTER UN ANIMAL                   ║");
+            System.out.println("╚════════════════════════════════════════╝");
 
-        System.out.println("Espèce: 1=Ruminant  2=Volaille");
-        System.out.print("→ Choix: ");
-        espece type = "1".equals(scanner.nextLine().trim()) ? espece.Ruminant : espece.Volaille;
+            System.out.println("Espèce: 1=Ruminant  2=Volaille");
+            System.out.print("→ Choix: ");
+            espece type = "1".equals(scanner.nextLine().trim()) ? espece.Ruminant : espece.Volaille;
 
-        System.out.print("Âge (années): ");
-        double age = lireDouble(scanner.nextLine());
-        System.out.print("Poids (kg): ");
-        double poids = lireDouble(scanner.nextLine());
-        System.out.print("Quantité d'alimentation quotidienne (kg): ");
-        double quantite = lireDouble(scanner.nextLine());
-        System.out.print("Type d'alimentation: ");
-        String typeAliment = scanner.nextLine().trim();
+            System.out.print("Âge (années): ");
+            double age = lireDouble(scanner.nextLine());
+            if (age < 0) {
+                throw new FermeException("L'âge ne peut pas être négatif");
+            }
+            
+            System.out.print("Poids (kg): ");
+            double poids = lireDouble(scanner.nextLine());
+            if (poids <= 0) {
+                throw new FermeException("Le poids doit être positif");
+            }
+            
+            System.out.print("Quantité d'alimentation quotidienne (kg): ");
+            double quantite = lireDouble(scanner.nextLine());
+            if (quantite < 0) {
+                throw new FermeException("La quantité d'alimentation ne peut pas être négative");
+            }
+            
+            System.out.print("Type d'alimentation: ");
+            String typeAliment = scanner.nextLine().trim();
+            if (typeAliment == null || typeAliment.isEmpty()) {
+                throw new FermeException("Le type d'alimentation ne peut pas être vide");
+            }
+            
+            System.out.print("Etat de sante: ");
+            etatdesante etatSante = etatdesante.valueOf(scanner.nextLine().trim());
 
-        Animal animal = new Animal(
-            new ProgrammeAlimentaire(quantite, typeAliment),
-            type, age, poids, etatdesante.Soin, null
-        );
+            Animal animal = new Animal(
+                new ProgrammeAlimentaire(quantite, typeAliment),
+                type, age, poids, etatSante, null
+            );
 
-        if (ferme.ajouterAnimal(animalerie, animal)) {
-            System.out.println("✓ Animal ajouté: " + type + " (ID: " + animal.getId() + ")");
+            if (ferme.ajouterAnimal(animalerie, animal)) {
+                System.out.println("✓ Animal ajouté: " + type + " (ID: " + animal.getId() + ")");
+            }
+        } catch (FermeException e) {
+            System.out.println("❌ " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.out.println("❌ État de santé invalide: " + e.getMessage());
         }
     }
 
@@ -641,7 +853,8 @@ public class Ferme {
                     int idx = 1;
                     for (Animal a : animalerie.getKouri()) {
                         System.out.println("  " + idx + ". " + a.getGen() + " - Âge: " + a.getAge() + 
-                            "ans | Poids: " + a.getPoids() + "kg | État: " + a.getSante());
+                            "ans | Poids: " + a.getPoids() + "kg | État: " + a.getSante() +
+                            " | Alimentation: " + formatProgrammeAlimentaire(a.getPg()));
                         idx++;
                     }
                 }
@@ -667,6 +880,44 @@ public class Ferme {
         if (!trouve) {
             System.out.println("⚠ Aucune zone d'élevage disponible.");
         }
+    }
+
+    private static void afficherProgrammesAlimentaires(Ferme ferme) {
+        List<ZoneGeographique> zones = ferme.getZones();
+        boolean trouve = false;
+
+        System.out.println("\n╔════════════════════════════════════════════════════╗");
+        System.out.println("║       PROGRAMMES D'ALIMENTATION DES ANIMAUX        ║");
+        System.out.println("╚════════════════════════════════════════════════════╝");
+
+        for (ZoneGeographique zone : zones) {
+            if (zone instanceof Animalerie) {
+                Animalerie animalerie = (Animalerie) zone;
+                System.out.println("\nZone: " + animalerie.getNom());
+                if (animalerie.getKouri().isEmpty()) {
+                    System.out.println("  Aucun animal");
+                } else {
+                    int idx = 1;
+                    for (Animal animal : animalerie.getKouri()) {
+                        System.out.println("  " + idx + ". " + animal.getGen() +
+                            " | Programme: " + formatProgrammeAlimentaire(animal.getPg()));
+                        idx++;
+                    }
+                }
+                trouve = true;
+            }
+        }
+
+        if (!trouve) {
+            System.out.println("⚠ Aucune zone d'élevage disponible.");
+        }
+    }
+
+    private static String formatProgrammeAlimentaire(ProgrammeAlimentaire programme) {
+        if (programme == null) {
+            return "non renseigné";
+        }
+        return programme.getQuantity() + " kg de " + programme.getTypealiment();
     }
 
     private static void enregistrerEvenementSanitaireInteractif(Scanner scanner, Ferme ferme) {
@@ -743,39 +994,48 @@ public class Ferme {
         ZoneGeographique zone = choisirZoneInteractif(scanner, ferme);
         if (zone == null) return;
 
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║     AJOUTER UN CAPTEUR                  ║");
-        System.out.println("╚════════════════════════════════════════╝");
-        System.out.println("Type:");
-        System.out.println("  1. Environnemental (température)");
-        System.out.println("  2. Sol (pH, humidité)");
-        System.out.println("  3. Eau (qualité)");
-        System.out.println("  4. GPS (position)");
-        System.out.println("  5. Biométrique (animaux)");
-        System.out.print("→ Choix: ");
+        try {
+            System.out.println("\n╔════════════════════════════════════════╗");
+            System.out.println("║     AJOUTER UN CAPTEUR                  ║");
+            System.out.println("╚════════════════════════════════════════╝");
+            System.out.println("Type:");
+            System.out.println("  1. Environnemental (température)");
+            System.out.println("  2. Sol (pH, humidité)");
+            System.out.println("  3. Eau (qualité)");
+            System.out.println("  4. GPS (position)");
+            System.out.println("  5. Biométrique (animaux)");
+            System.out.print("→ Choix: ");
 
-        String type = scanner.nextLine().trim();
-        Capteur capteur = null;
+            String type = scanner.nextLine().trim();
+            Capteur capteur = null;
 
-        if ("1".equals(type)) capteur = new Environemental();
-        else if ("2".equals(type)) capteur = new Sol();
-        else if ("3".equals(type)) capteur = new Eau();
-        else if ("4".equals(type)) capteur = new GPS();
-        else if ("5".equals(type)) capteur = new Biometrique();
-        else {
-            System.out.println("❌ Type invalide.");
-            return;
-        }
+            if ("1".equals(type)) capteur = new Environemental();
+            else if ("2".equals(type)) capteur = new Sol();
+            else if ("3".equals(type)) capteur = new Eau();
+            else if ("4".equals(type)) capteur = new GPS();
+            else if ("5".equals(type)) capteur = new Biometrique();
+            else {
+                System.out.println("❌ Type invalide.");
+                return;
+            }
 
-        System.out.print("Seuil minimum: ");
-        double min = lireDouble(scanner.nextLine());
-        System.out.print("Seuil maximum: ");
-        double max = lireDouble(scanner.nextLine());
-        capteur.configurerSeuils(min, max);
+            System.out.print("Seuil minimum: ");
+            double min = lireDouble(scanner.nextLine());
+            System.out.print("Seuil maximum: ");
+            double max = lireDouble(scanner.nextLine());
+            
+            if (min >= max) {
+                throw new FermeException("Le seuil minimum doit être inférieur au seuil maximum");
+            }
+            
+            capteur.configurerSeuils(min, max);
 
-        if (ferme.ajouterCapteur(zone, capteur)) {
-            System.out.println("✓ Capteur " + capteur.getClass().getSimpleName() + " ajouté");
-            System.out.println("  Seuils: " + min + " - " + max);
+            if (ferme.ajouterCapteur(zone, capteur)) {
+                System.out.println("✓ Capteur " + capteur.getClass().getSimpleName() + " ajouté");
+                System.out.println("  Seuils: " + min + " - " + max);
+            }
+        } catch (FermeException e) {
+            System.out.println("❌ " + e.getMessage());
         }
     }
 
@@ -808,42 +1068,49 @@ public class Ferme {
             return;
         }
 
-        Capteur[] capteurs = zone.getMaintenance().toArray(new Capteur[0]);
-        System.out.println("\nCapteurs disponibles:");
-        for (int i = 0; i < capteurs.length; i++) {
-            System.out.println((i + 1) + ". " + capteurs[i].getClass().getSimpleName());
-        }
+        try {
+            Capteur[] capteurs = zone.getMaintenance().toArray(new Capteur[0]);
+            System.out.println("\nCapteurs disponibles:");
+            for (int i = 0; i < capteurs.length; i++) {
+                System.out.println((i + 1) + ". " + capteurs[i].getClass().getSimpleName());
+            }
 
-        System.out.print("→ Sélectionner un capteur: ");
-        int idx = lireInt(scanner.nextLine()) - 1;
-        if (idx < 0 || idx >= capteurs.length) {
-            System.out.println("❌ Sélection invalide.");
-            return;
-        }
+            System.out.print("→ Sélectionner un capteur: ");
+            int idx = lireInt(scanner.nextLine()) - 1;
+            if (idx < 0 || idx >= capteurs.length) {
+                System.out.println("❌ Sélection invalide.");
+                return;
+            }
 
-        Capteur capteur = capteurs[idx];
-        if (!capteur.isActif()) {
-            System.out.println("⚠ Ce capteur est suspendu.");
-            return;
-        }
+            Capteur capteur = capteurs[idx];
+            if (!capteur.isActif()) {
+                System.out.println("⚠ Ce capteur est suspendu.");
+                return;
+            }
 
-        if (capteur instanceof GPS) {
-            System.out.print("Latitude: ");
-            double lat = lireDouble(scanner.nextLine());
-            System.out.print("Longitude: ");
-            double lon = lireDouble(scanner.nextLine());
-            ReleveGPS releveGps = new ReleveGPS(capteur, lat, lon, LocalDateTime.now());
-            boolean alerte = ferme.enregistrerReleveGps(capteur, releveGps);
-            System.out.println("✓ Relevé GPS enregistré");
-            if (alerte) System.out.println("⚠ Alerte GPS déclenchée!");
-        } else {
-            System.out.print("Valeur: ");
-            double valeur = lireDouble(scanner.nextLine());
-            System.out.print("Unité: ");
-            String unite = scanner.nextLine().trim();
-            ReleveNum releve = new ReleveNum(capteur, valeur, unite, LocalDateTime.now());
-            ferme.enregistrerReleve(capteur, releve);
-            System.out.println("✓ Relevé enregistré: " + valeur + " " + unite);
+            if (capteur instanceof GPS) {
+                System.out.print("Latitude: ");
+                double lat = lireDouble(scanner.nextLine());
+                System.out.print("Longitude: ");
+                double lon = lireDouble(scanner.nextLine());
+                ReleveGPS releveGps = new ReleveGPS(capteur, lat, lon, LocalDateTime.now());
+                boolean alerte = ferme.enregistrerReleveGps(capteur, releveGps);
+                System.out.println("✓ Relevé GPS enregistré");
+                if (alerte) System.out.println("⚠ Alerte GPS déclenchée!");
+            } else {
+                System.out.print("Valeur: ");
+                double valeur = lireDouble(scanner.nextLine());
+                System.out.print("Unité: ");
+                String unite = scanner.nextLine().trim();
+                if (unite == null || unite.isEmpty()) {
+                    throw new FermeException("L'unité du relevé ne peut pas être vide");
+                }
+                ReleveNum releve = new ReleveNum(capteur, valeur, unite, LocalDateTime.now());
+                ferme.enregistrerReleve(capteur, releve);
+                System.out.println("✓ Relevé enregistré: " + valeur + " " + unite);
+            }
+        } catch (FermeException e) {
+            System.out.println("❌ " + e.getMessage());
         }
     }
 

@@ -4,7 +4,7 @@ import java.util.List;
 public class Culture extends ZoneGeographique {
     private List<Plantation> terre = new ArrayList<>();
     private double seuil_abs;
-    private double seuil_ord;
+    private double seuil_ord;    
     public Culture(String nom) {
         super(nom);
     }
@@ -29,7 +29,7 @@ public class Culture extends ZoneGeographique {
         }
         boolean ajoute = terre.add(plantation);
         if (ajoute) {
-            nb_especes = terre.size();
+            nb_especes = terre.size();   //psq protected tan
         }
         return ajoute;
     }
@@ -45,7 +45,7 @@ public class Culture extends ZoneGeographique {
     }
     public void mettreAJourStade(Plantation plantation, Stadedecroissance stade) {
         if (plantation != null) {
-            plantation.setEpan(stade);
+            plantation.setEpan(stade);     //kima fel menu ta3 el main (Easier)
         }
     }
 }

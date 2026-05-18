@@ -1,22 +1,24 @@
 import java.time.LocalDate;
 public class EvenementSanitaire {
-    private Animal animal;
+    private Animal hayawan;
     private LocalDate date;
     private String description;
     private double variationPoids;
+    
     public EvenementSanitaire() {
     }
-    public EvenementSanitaire(Animal animal, LocalDate date, String description, double variationPoids) {
-        this.animal = animal;
+    
+    public EvenementSanitaire(Animal hayawan, LocalDate date, String description, double variationPoids) {
+        this.hayawan = hayawan;
         this.date = date;
         this.description = description;
         this.variationPoids = variationPoids;
     }
     public Animal getAnimal() {
-        return animal;
+        return hayawan;
     }
-    public void setAnimal(Animal animal) {
-        this.animal = animal;
+    public void setAnimal(Animal hayawan) {
+        this.hayawan = hayawan;
     }
     public LocalDate getDate() {
         return date;

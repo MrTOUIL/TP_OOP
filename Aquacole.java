@@ -4,11 +4,13 @@ import java.util.List;
 public class Aquacole extends ZoneGeographique {
     private List<Poisson> aquarium = new ArrayList<>();
     private ProgrammeAlimentaire programmeAlimentaire;
+    
+    
     public Aquacole(String nom) {
         super(nom);
     }
     public List<Poisson> getAquarium() {
-        return Collections.unmodifiableList(aquarium);
+        return Collections.unmodifiableList(aquarium);    //chouf el cour ta3 les collections tfhm
     }
     public boolean ajouterPoisson(Poisson poisson) {
         if (poisson == null) {
@@ -16,7 +18,7 @@ public class Aquacole extends ZoneGeographique {
         }
         boolean ajoute = aquarium.add(poisson);
         if (ajoute) {
-            nb_especes = aquarium.size();
+            nb_especes = aquarium.size();     // psq protectred
         }
         return ajoute;
     }
@@ -26,7 +28,7 @@ public class Aquacole extends ZoneGeographique {
         }
         boolean supprime = aquarium.remove(poisson);
         if (supprime) {
-            nb_especes = aquarium.size();
+            nb_especes = aquarium.size();   //kifkif kho
         }
         return supprime;
     }

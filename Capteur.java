@@ -7,9 +7,11 @@ public abstract class Capteur implements Suspendable {
     protected boolean actif;
     protected Statut stat;
     protected List<Releve> rel = new ArrayList<>();
-    protected ZoneGeographique zone;
-    protected double seuilMin;
+    protected ZoneGeographique zone;   //relation symetrique chof el dessin ta3 el cahier tfhmni
+    protected double seuilMin;     //inf w sup
     protected double seuilMax;
+    
+    
     public Capteur() {
         this.actif = true;
         this.stat = Statut.Actif;
@@ -32,7 +34,7 @@ public abstract class Capteur implements Suspendable {
     public ZoneGeographique getZone() {
         return zone;
     }
-    public void setZone(ZoneGeographique zone) {
+    public void setZone(ZoneGeographique zone) {    
         this.zone = zone;
     }
     public double getSeuilMin() {
@@ -47,11 +49,11 @@ public abstract class Capteur implements Suspendable {
     }
     public void ajouterReleve(Releve releve) {
         if (releve != null) {
-            rel.add(releve);
+            rel.add(releve);      //chouf el cahier nta tan
         }
     }
     public boolean estHorsSeuil(double valeur) {
-        return valeur < seuilMin || valeur > seuilMax;
+        return valeur < seuilMin || valeur > seuilMax;     //chouf el paga ta3 el cahier le 14 mai rani hader eliha
     }
     @Override
     public void activer() {

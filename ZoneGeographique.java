@@ -1,3 +1,4 @@
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -8,7 +9,7 @@ public abstract class ZoneGeographique implements Suspendable {
     protected UUID id = UUID.randomUUID();
     protected String nom;
     protected boolean actif;
-    protected Set<Capteur> maintenance = new HashSet<>();
+    protected Set<Capteur> maintenance = new HashSet<>();    //ykhdem b les capteurs (Uniques)
     protected List<Double> production = new ArrayList<>();
     protected List<Releve> rel = new ArrayList<>();
     protected List<Alerte> alt = new ArrayList<>();
@@ -36,9 +37,9 @@ public abstract class ZoneGeographique implements Suspendable {
         return Collections.unmodifiableList(production);
     }
     public List<Releve> getRel() {
-        return Collections.unmodifiableList(rel);
+        return Collections.unmodifiableList(rel);   //d'apres la documentation
     }
-    public List<Alerte> getAlt() {
+    public List<Alerte> getAlt() {        
         return Collections.unmodifiableList(alt);
     }
     public int getNb_especes() {
@@ -51,7 +52,7 @@ public abstract class ZoneGeographique implements Suspendable {
         if (capteur == null) {
             return false;
         }
-        boolean ajoute = maintenance.add(capteur);
+        boolean ajoute = maintenance.add(capteur);     //chouf el cahier
         if (ajoute) {
             capteur.setZone(this);
         }
@@ -61,7 +62,7 @@ public abstract class ZoneGeographique implements Suspendable {
         if (capteur == null) {
             return false;
         }
-        boolean supprime = maintenance.remove(capteur);
+        boolean supprime = maintenance.remove(capteur);     //kifkif
         if (supprime) {
             capteur.setZone(null);
         }
@@ -90,13 +91,13 @@ public abstract class ZoneGeographique implements Suspendable {
     public void activer() {
         this.actif = true;
         for (Capteur capteur : maintenance) {
-            capteur.activer();
+            capteur.activer();       // ta3 el interface
         }
     }
     @Override
     public void desactiver() {
         this.actif = false;
-        for (Capteur capteur : maintenance) {
+        for (Capteur capteur : maintenance) {   //kifkif
             capteur.desactiver();
         }
     }

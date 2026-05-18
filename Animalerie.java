@@ -4,6 +4,7 @@ import java.util.Set;
 public class Animalerie extends ZoneGeographique {
     private Set<Animal> kouri = new HashSet<>();
     private ProgrammeAlimentaire programmeAlimentaire;
+    
     public Animalerie(String nom) {
         super(nom);
     }

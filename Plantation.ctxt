@@ -1,7 +1,7 @@
 #BlueJ class context
 comment0.target=Plantation
 comment1.params=date_plant\ date_rec\ epan\ phMax\ phMin\ humidite
-comment1.target=Plantation(java.time.LocalDate,\ java.time.LocalDate,\ modele.Stadedecroissance,\ double,\ double,\ double)
+comment1.target=Plantation(java.time.LocalDate,\ java.time.LocalDate,\ Stadedecroissance,\ double,\ double,\ double)
 comment10.params=
 comment10.target=double\ getPhMin()
 comment11.params=phMin
@@ -19,9 +19,9 @@ comment4.target=java.time.LocalDate\ getDate_rec()
 comment5.params=date_rec
 comment5.target=void\ setDate_rec(java.time.LocalDate)
 comment6.params=
-comment6.target=modele.Stadedecroissance\ getEpan()
+comment6.target=Stadedecroissance\ getEpan()
 comment7.params=epan
-comment7.target=void\ setEpan(modele.Stadedecroissance)
+comment7.target=void\ setEpan(Stadedecroissance)
 comment8.params=
 comment8.target=double\ getPhMax()
 comment9.params=phMax

@@ -7,8 +7,7 @@ public class Animal {
     private double poids;
     private etatdesante sante;
     private Biometrique laisse;
-    public Animal() {
-    }
+    public Animal() {}
     public Animal(ProgrammeAlimentaire pg, espece gen, double age, double poids, etatdesante sante, Biometrique laisse) {
         this.pg = pg;
         this.gen = gen;
