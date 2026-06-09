@@ -74,6 +74,9 @@ public class Ferme {
         if (zone == null) {
             throw new FermeException("Erreur: La zone ne peut pas être null");
         }
+        if (!zone.isActif()) {
+            throw new FermeException("Erreur: La zone est suspendue ou défaillante, impossible d'y ajouter un capteur");
+        }
         if (capteur == null) {
             throw new FermeException("Erreur: Le capteur ne peut pas être null");
         }
@@ -86,6 +89,9 @@ public class Ferme {
     public boolean ajouterAnimal(Animalerie zone, Animal animal) throws FermeException {
         if (zone == null) {
             throw new FermeException("Erreur: La zone animalerie ne peut pas être null");
+        }
+        if (!zone.isActif()) {
+            throw new FermeException("Erreur: La zone est suspendue ou défaillante, impossible d'y ajouter un animal");
         }
         if (animal == null) {
             throw new FermeException("Erreur: L'animal ne peut pas être null");
@@ -103,6 +109,9 @@ public class Ferme {
         if (zone == null) {
             throw new FermeException("Erreur: La zone culture ne peut pas être null");
         }
+        if (!zone.isActif()) {
+            throw new FermeException("Erreur: La zone est suspendue ou défaillante, impossible d'y ajouter une culture");
+        }
         if (plantation == null) {
             throw new FermeException("Erreur: La plantation ne peut pas être null");
         }
@@ -119,6 +128,9 @@ public class Ferme {
         if (zone == null) {
             throw new FermeException("Erreur: La zone aquacole ne peut pas être null");
         }
+        if (!zone.isActif()) {
+            throw new FermeException("Erreur: La zone est suspendue ou défaillante, impossible d'y ajouter un poisson");
+        }
         if (poisson == null) {
             throw new FermeException("Erreur: Le poisson ne peut pas être null");
         }
@@ -126,7 +138,7 @@ public class Ferme {
     }
 
     public void enregistrerProduction(ZoneGeographique zone, double valeur) {
-        if (zone != null) {
+        if (zone != null && zone.isActif()) {
             zone.enregistrerProduction(valeur);
         }
     }
@@ -205,6 +217,9 @@ public class Ferme {
     }
 
     private void declencherAlerte(ZoneGeographique zone, Releve releve, String message) {
+        if (zone != null && !zone.isActif()) {
+            return;
+        }
         Alerte alerte = new Alerte(Gravite.Critique, LocalDate.now());
         alerte.setReleve(releve);
         alerte.setMessage(message);

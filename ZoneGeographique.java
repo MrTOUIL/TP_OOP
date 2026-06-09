@@ -49,7 +49,7 @@ public abstract class ZoneGeographique implements Suspendable {
         this.nb_especes = nb_especes;
     }
     public boolean ajouterCapteur(Capteur capteur) {
-        if (capteur == null) {
+        if (!actif || capteur == null) {
             return false;
         }
         boolean ajoute = maintenance.add(capteur);     //chouf el cahier
@@ -74,7 +74,7 @@ public abstract class ZoneGeographique implements Suspendable {
         }
     }
     public void ajouterAlerte(Alerte alerte) {
-        if (alerte != null) {
+        if (actif && alerte != null) {
             alt.add(alerte);
         }
     }
@@ -82,7 +82,9 @@ public abstract class ZoneGeographique implements Suspendable {
         return alerte != null && alt.remove(alerte);
     }
     public void enregistrerProduction(double valeur) {
-        production.add(valeur);
+        if (actif) {
+            production.add(valeur);
+        }
     }
     public int getNombreEntites() {
         return nb_especes;

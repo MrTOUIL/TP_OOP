@@ -26,6 +26,7 @@ import java.util.Locale;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBox;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -66,6 +67,7 @@ public class FermeGUI extends JFrame {
     private final DefaultListModel<AlertRef> historyAlertsModel = new DefaultListModel<>();
     private final JList<AlertRef> activeAlertsList = new JList<>(activeAlertsModel);
     private final JList<AlertRef> historyAlertsList = new JList<>(historyAlertsModel);
+    private final JComboBox<EvenementSanitaireRef> evenementSanitaireCombo = new JComboBox<>();
 
     private final JComboBox<ZoneRef> zoneActuelleCombo = new JComboBox<>(allZonesModel);
     private final JComboBox<ZoneRef> cultureZoneCombo = new JComboBox<>(cultureZonesModel);
@@ -84,6 +86,7 @@ public class FermeGUI extends JFrame {
 
     private final JComboBox<PlantationRef> plantationCombo = new JComboBox<>();
     private final JComboBox<AnimalRef> animalCombo = new JComboBox<>();
+    private final JComboBox<PoissonRef> poissonCombo = new JComboBox<>();
     private final JComboBox<CapteurRef> capteurCombo = new JComboBox<>();
 
     private final JTextField zoneNomField = new JTextField(16);
@@ -151,6 +154,31 @@ public class FermeGUI extends JFrame {
         capteurCombo.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 refreshReleveChart();
+            }
+        });
+        plantationCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                remplirChampsPlantation((PlantationRef) plantationCombo.getSelectedItem());
+            }
+        });
+        animalCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                remplirChampsAnimal((AnimalRef) animalCombo.getSelectedItem());
+            }
+        });
+        evenementSanitaireCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                remplirChampsEvenementSanitaire((EvenementSanitaireRef) evenementSanitaireCombo.getSelectedItem());
+            }
+        });
+        poissonCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                remplirChampsPoisson((PoissonRef) poissonCombo.getSelectedItem());
+            }
+        });
+        aquacoleZoneCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                refreshAnimaux();
             }
         });
         refreshAll();
@@ -240,6 +268,10 @@ public class FermeGUI extends JFrame {
         panel.add(activerButton, constraints(3, 2, 1, 1));
         panel.add(desactiverButton, constraints(4, 2, 1, 1));
 
+        JButton modifierZoneButton = new JButton("Modifier zone");
+        modifierZoneButton.addActionListener(e -> modifierZone());
+        panel.add(modifierZoneButton, constraints(5, 2, 1, 1));
+
         panel.add(new JLabel("Production"), constraints(0, 3, 1, 1));
         panel.add(productionField, constraints(1, 3, 1, 1));
         JButton productionButton = new JButton("Enregistrer");
@@ -307,6 +339,10 @@ public class FermeGUI extends JFrame {
         majStadeButton.addActionListener(e -> mettreAJourStade());
         panel.add(majStadeButton, constraints(5, 5, 1, 1));
 
+        JButton modifierPlantationButton = new JButton("Modifier plantation");
+        modifierPlantationButton.addActionListener(e -> modifierPlantation());
+        panel.add(modifierPlantationButton, constraints(6, 5, 2, 1));
+
         panel.add(scroll(culturesArea), constraints(0, 6, 6, 1, 1.0, 1.0));
         return panel;
     }
@@ -339,13 +375,17 @@ public class FermeGUI extends JFrame {
         ajouterAnimalButton.addActionListener(e -> ajouterAnimal());
         panel.add(ajouterAnimalButton, constraints(0, 4, 2, 1));
 
+        JButton modifierAnimalButton = new JButton("Modifier animal");
+        modifierAnimalButton.addActionListener(e -> modifierAnimal());
+        panel.add(modifierAnimalButton, constraints(2, 4, 2, 1));
+
         JButton rapportAnimaux = new JButton("Rapport détaillé");
         rapportAnimaux.addActionListener(e -> ouvrirRapportDetaille("Rapport détaillé - animaux", rapportAnimauxDetaille()));
-        panel.add(rapportAnimaux, constraints(2, 4, 2, 1));
+        panel.add(rapportAnimaux, constraints(4, 4, 2, 1));
 
         JButton rapportSanitaire = new JButton("Rapport sanitaire");
         rapportSanitaire.addActionListener(e -> ouvrirRapportDetaille("Rapport sanitaire", rapportSanitaireDetaille()));
-        panel.add(rapportSanitaire, constraints(4, 4, 2, 1));
+        panel.add(rapportSanitaire, constraints(6, 4, 2, 1));
 
         panel.add(new JLabel("Aquacole"), constraints(0, 5, 1, 1));
         panel.add(aquacoleZoneCombo, constraints(1, 5, 2, 1));
@@ -357,17 +397,30 @@ public class FermeGUI extends JFrame {
         ajouterPoissonButton.addActionListener(e -> ajouterPoisson());
         panel.add(ajouterPoissonButton, constraints(2, 6, 2, 1));
 
+        JButton modifierPoissonButton = new JButton("Modifier poisson");
+        modifierPoissonButton.addActionListener(e -> modifierPoisson());
+        panel.add(modifierPoissonButton, constraints(4, 6, 2, 1));
+
         panel.add(new JLabel("Animal sélectionné"), constraints(0, 7, 1, 1));
         panel.add(animalCombo, constraints(1, 7, 2, 1));
         panel.add(new JLabel("Description"), constraints(3, 7, 1, 1));
         panel.add(evenementDescriptionField, constraints(4, 7, 2, 1));
+        JButton modifierAnimalSelectionButton = new JButton("Modifier animal");
+        modifierAnimalSelectionButton.addActionListener(e -> modifierAnimal());
+        panel.add(modifierAnimalSelectionButton, constraints(6, 7, 1, 1));
         panel.add(new JLabel("Variation poids"), constraints(0, 8, 1, 1));
         panel.add(evenementVariationField, constraints(1, 8, 1, 1));
         JButton enregistrerEvt = new JButton("Enregistrer événement sanitaire");
         enregistrerEvt.addActionListener(e -> enregistrerEvenementSanitaire());
         panel.add(enregistrerEvt, constraints(2, 8, 3, 1));
 
-        panel.add(scroll(animauxArea), constraints(0, 9, 6, 1, 1.0, 1.0));
+        panel.add(new JLabel("Événement sélectionné"), constraints(0, 9, 1, 1));
+        panel.add(evenementSanitaireCombo, constraints(1, 9, 3, 1));
+        JButton modifierEvenementButton = new JButton("Modifier événement");
+        modifierEvenementButton.addActionListener(e -> modifierEvenementSanitaire());
+        panel.add(modifierEvenementButton, constraints(4, 9, 2, 1));
+
+        panel.add(scroll(animauxArea), constraints(0, 10, 6, 1, 1.0, 1.0));
         return panel;
     }
 
@@ -392,9 +445,13 @@ public class FermeGUI extends JFrame {
         ajouterCapteurButton.addActionListener(e -> ajouterCapteur());
         panel.add(ajouterCapteurButton, constraints(0, 3, 2, 1));
 
+        JButton modifierCapteurButton = new JButton("Modifier capteur");
+        modifierCapteurButton.addActionListener(e -> modifierCapteur());
+        panel.add(modifierCapteurButton, constraints(2, 3, 2, 1));
+
         JButton rapportCapteurs = new JButton("Rapport détaillé");
         rapportCapteurs.addActionListener(e -> ouvrirRapportDetaille("Rapport détaillé - capteurs", rapportCapteursDetaille()));
-        panel.add(rapportCapteurs, constraints(2, 3, 2, 1));
+        panel.add(rapportCapteurs, constraints(4, 3, 2, 1));
 
         panel.add(new JLabel("Capteur"), constraints(2, 3, 1, 1));
         panel.add(capteurCombo, constraints(3, 3, 2, 1));
@@ -411,13 +468,21 @@ public class FermeGUI extends JFrame {
         enregistrerReleveButton.addActionListener(e -> enregistrerReleve());
         panel.add(enregistrerReleveButton, constraints(0, 5, 2, 1));
 
-        JButton activerCapteurButton = new JButton("Activer / suspendre");
-        activerCapteurButton.addActionListener(e -> basculerCapteur());
-        panel.add(activerCapteurButton, constraints(2, 5, 2, 1));
+        JButton activerCapteurButton = new JButton("Activer");
+        activerCapteurButton.addActionListener(e -> changerStatutCapteur(Statut.Actif));
+        panel.add(activerCapteurButton, constraints(2, 5, 1, 1));
+
+        JButton suspendreCapteurButton = new JButton("Suspendre");
+        suspendreCapteurButton.addActionListener(e -> changerStatutCapteur(Statut.Suspendu));
+        panel.add(suspendreCapteurButton, constraints(3, 5, 1, 1));
+
+        JButton defaillantCapteurButton = new JButton("Défaillant");
+        defaillantCapteurButton.addActionListener(e -> changerStatutCapteur(Statut.Defaillant));
+        panel.add(defaillantCapteurButton, constraints(4, 5, 1, 1));
 
         JButton actualiserCapteursButton = new JButton("Actualiser");
         actualiserCapteursButton.addActionListener(e -> refreshCapteurs());
-        panel.add(actualiserCapteursButton, constraints(4, 5, 1, 1));
+        panel.add(actualiserCapteursButton, constraints(5, 5, 1, 1));
 
         panel.add(scroll(capteursArea), constraints(0, 6, 8, 1, 1.0, 0.8));
         panel.add(releveChart, constraints(0, 7, 8, 1, 1.0, 0.8));
@@ -541,6 +606,56 @@ public class FermeGUI extends JFrame {
         }
     }
 
+    private void modifierZone() {
+        ZoneRef ref = selectedZone(zoneActuelleCombo);
+        if (ref == null) {
+            erreur("Sélectionnez une zone.");
+            return;
+        }
+
+        JDialog dialog = new JDialog(this, "Modifier une zone", true);
+        JTextField nomField = new JTextField(ref.zone.getNom(), 20);
+        JCheckBox activeBox = new JCheckBox("Zone active", ref.zone.isActif());
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(12, 12, 12, 12));
+        form.add(new JLabel("Nom"), constraints(0, 0, 1, 1));
+        form.add(nomField, constraints(1, 0, 2, 1));
+        form.add(activeBox, constraints(0, 1, 2, 1));
+
+        JButton enregistrer = new JButton("Enregistrer");
+        enregistrer.addActionListener(e -> {
+            String nom = nomField.getText().trim();
+            if (nom.isEmpty()) {
+                erreur("Le nom de la zone ne peut pas être vide.");
+                return;
+            }
+            ref.zone.setNom(nom);
+            if (activeBox.isSelected()) {
+                ref.zone.activer();
+            } else {
+                ref.zone.desactiver();
+            }
+            refreshAll();
+            dialog.dispose();
+            info("Zone modifiée: " + ref.zone.getNom());
+        });
+
+        JButton annuler = new JButton("Annuler");
+        annuler.addActionListener(e -> dialog.dispose());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(annuler);
+        actions.add(enregistrer);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
     private void basculerZone(boolean activer) {
         ZoneRef ref = selectedZone(zoneActuelleCombo);
         if (ref == null) {
@@ -561,6 +676,10 @@ public class FermeGUI extends JFrame {
             erreur("Sélectionnez une zone.");
             return;
         }
+        if (!ref.zone.isActif()) {
+            erreur("La zone est suspendue , la production est désactivée.");
+            return;
+        }
         double valeur = parseDouble(productionField.getText(), Double.NaN);
         if (Double.isNaN(valeur)) {
             erreur("Valeur de production invalide.");
@@ -575,6 +694,10 @@ public class FermeGUI extends JFrame {
         ZoneRef ref = selectedZone(cultureZoneCombo);
         if (ref == null || !(ref.zone instanceof Culture)) {
             erreur("Sélectionnez une zone de culture.");
+            return;
+        }
+        if (!ref.zone.isActif()) {
+            erreur("La zone est suspendue , impossible d'ajouter une plantation.");
             return;
         }
 
@@ -621,10 +744,95 @@ public class FermeGUI extends JFrame {
         }
     }
 
+    private void modifierPlantation() {
+        PlantationRef ref = (PlantationRef) plantationCombo.getSelectedItem();
+        if (ref == null) {
+            erreur("Sélectionnez une plantation.");
+            return;
+        }
+
+        JDialog dialog = new JDialog(this, "Modifier une plantation", true);
+        JTextField typeField = new JTextField(ref.plantation.getType(), 18);
+        JTextField datePlantField = new JTextField(ref.plantation.getDate_plant() == null ? "" : ref.plantation.getDate_plant().toString(), 12);
+        JTextField dateRecolteField = new JTextField(ref.plantation.getDate_rec() == null ? "" : ref.plantation.getDate_rec().toString(), 12);
+        JTextField phMinField = new JTextField(String.valueOf(ref.plantation.getPhMin()), 8);
+        JTextField phMaxField = new JTextField(String.valueOf(ref.plantation.getPhMax()), 8);
+        JTextField humiditeField = new JTextField(String.valueOf(ref.plantation.getHumidite()), 8);
+        JComboBox<String> stadeField = new JComboBox<>(new String[]{"Semis", "Germination", "Croissance", "Maturite", "Recolte"});
+        stadeField.setSelectedItem(ref.plantation.getEpan() == null ? "Semis" : ref.plantation.getEpan().name());
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(12, 12, 12, 12));
+        form.add(new JLabel("Type"), constraints(0, 0, 1, 1));
+        form.add(typeField, constraints(1, 0, 2, 1));
+        form.add(new JLabel("Date plantation"), constraints(0, 1, 1, 1));
+        form.add(datePlantField, constraints(1, 1, 1, 1));
+        form.add(new JLabel("Date récolte"), constraints(2, 1, 1, 1));
+        form.add(dateRecolteField, constraints(3, 1, 1, 1));
+        form.add(new JLabel("Stade"), constraints(0, 2, 1, 1));
+        form.add(stadeField, constraints(1, 2, 1, 1));
+        form.add(new JLabel("pH min"), constraints(2, 2, 1, 1));
+        form.add(phMinField, constraints(3, 2, 1, 1));
+        form.add(new JLabel("pH max"), constraints(0, 3, 1, 1));
+        form.add(phMaxField, constraints(1, 3, 1, 1));
+        form.add(new JLabel("Humidité"), constraints(2, 3, 1, 1));
+        form.add(humiditeField, constraints(3, 3, 1, 1));
+
+        JButton enregistrer = new JButton("Enregistrer");
+        enregistrer.addActionListener(e -> {
+            LocalDate datePlant = parseDate(datePlantField.getText());
+            LocalDate dateRecolte = parseDate(dateRecolteField.getText());
+            double phMin = parseDouble(phMinField.getText(), Double.NaN);
+            double phMax = parseDouble(phMaxField.getText(), Double.NaN);
+            double humidite = parseDouble(humiditeField.getText(), Double.NaN);
+            String type = typeField.getText().trim();
+            if (type.isEmpty() || datePlant == null || dateRecolte == null || Double.isNaN(phMin) || Double.isNaN(phMax) || Double.isNaN(humidite)) {
+                erreur("Vérifiez les dates et valeurs numériques.");
+                return;
+            }
+            if (datePlant.isAfter(dateRecolte)) {
+                erreur("La date de plantation doit être antérieure à la date de récolte.");
+                return;
+            }
+            try {
+                ref.plantation.setType(type);
+                ref.plantation.setDate_plant(datePlant);
+                ref.plantation.setDate_rec(dateRecolte);
+                ref.plantation.setEpan(Stadedecroissance.valueOf((String) stadeField.getSelectedItem()));
+                ref.plantation.setPhMin(phMin);
+                ref.plantation.setPhMax(phMax);
+                ref.plantation.setHumidite(humidite);
+                refreshAll();
+                dialog.dispose();
+                info("Plantation modifiée.");
+            } catch (IllegalArgumentException ex) {
+                erreur("Stade invalide.");
+            }
+        });
+
+        JButton annuler = new JButton("Annuler");
+        annuler.addActionListener(e -> dialog.dispose());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(annuler);
+        actions.add(enregistrer);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
     private void ajouterAnimal() {
         ZoneRef ref = selectedZone(animalerieZoneCombo);
         if (ref == null || !(ref.zone instanceof Animalerie)) {
             erreur("Sélectionnez une animalerie.");
+            return;
+        }
+        if (!ref.zone.isActif()) {
+            erreur("La zone est suspendue , impossible d'ajouter un animal.");
             return;
         }
 
@@ -653,10 +861,85 @@ public class FermeGUI extends JFrame {
         }
     }
 
+    private void modifierAnimal() {
+        AnimalRef ref = (AnimalRef) animalCombo.getSelectedItem();
+        if (ref == null) {
+            erreur("Sélectionnez un animal.");
+            return;
+        }
+
+        JDialog dialog = new JDialog(this, "Modifier un animal", true);
+        JComboBox<String> especeField = new JComboBox<>(new String[]{"Ruminant", "Volaille"});
+        especeField.setSelectedItem(ref.animal.getGen() == null ? "Ruminant" : ref.animal.getGen().name());
+        JComboBox<String> santeField = new JComboBox<>(new String[]{"Malade", "Soin", "Quarantine"});
+        santeField.setSelectedItem(ref.animal.getSante() == null ? "Soin" : ref.animal.getSante().name());
+        JTextField ageField = new JTextField(String.valueOf(ref.animal.getAge()), 8);
+        JTextField poidsField = new JTextField(String.valueOf(ref.animal.getPoids()), 8);
+        JTextField alimentQuantiteField = new JTextField(ref.animal.getPg() == null ? "" : String.valueOf(ref.animal.getPg().getQuantity()), 8);
+        JTextField alimentTypeField = new JTextField(ref.animal.getPg() == null ? "" : ref.animal.getPg().getTypealiment(), 12);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(12, 12, 12, 12));
+        form.add(new JLabel("Espèce"), constraints(0, 0, 1, 1));
+        form.add(especeField, constraints(1, 0, 1, 1));
+        form.add(new JLabel("Santé"), constraints(2, 0, 1, 1));
+        form.add(santeField, constraints(3, 0, 1, 1));
+        form.add(new JLabel("Âge"), constraints(0, 1, 1, 1));
+        form.add(ageField, constraints(1, 1, 1, 1));
+        form.add(new JLabel("Poids"), constraints(2, 1, 1, 1));
+        form.add(poidsField, constraints(3, 1, 1, 1));
+        form.add(new JLabel("Qté alim."), constraints(0, 2, 1, 1));
+        form.add(alimentQuantiteField, constraints(1, 2, 1, 1));
+        form.add(new JLabel("Type alim."), constraints(2, 2, 1, 1));
+        form.add(alimentTypeField, constraints(3, 2, 1, 1));
+
+        JButton enregistrer = new JButton("Enregistrer");
+        enregistrer.addActionListener(e -> {
+            double age = parseDouble(ageField.getText(), Double.NaN);
+            double poids = parseDouble(poidsField.getText(), Double.NaN);
+            double quantite = parseDouble(alimentQuantiteField.getText(), Double.NaN);
+            String typeAliment = alimentTypeField.getText().trim();
+            if (Double.isNaN(age) || Double.isNaN(poids) || Double.isNaN(quantite) || typeAliment.isEmpty()) {
+                erreur("Vérifiez les valeurs de l'animal.");
+                return;
+            }
+            try {
+                ref.animal.setGen(espece.valueOf((String) especeField.getSelectedItem()));
+                ref.animal.setSante(etatdesante.valueOf((String) santeField.getSelectedItem()));
+                ref.animal.setAge(age);
+                ref.animal.setPoids(poids);
+                ref.animal.setPg(new ProgrammeAlimentaire(quantite, typeAliment));
+                refreshAll();
+                dialog.dispose();
+                info("Animal modifié.");
+            } catch (IllegalArgumentException ex) {
+                erreur("Valeur d'espèce ou d'état invalide.");
+            }
+        });
+
+        JButton annuler = new JButton("Annuler");
+        annuler.addActionListener(e -> dialog.dispose());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(annuler);
+        actions.add(enregistrer);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
     private void ajouterPoisson() {
         ZoneRef ref = selectedZone(aquacoleZoneCombo);
         if (ref == null || !(ref.zone instanceof Aquacole)) {
             erreur("Sélectionnez une zone aquacole.");
+            return;
+        }
+        if (!ref.zone.isActif()) {
+            erreur("La zone est suspendue , impossible d'ajouter un poisson.");
             return;
         }
 
@@ -677,6 +960,58 @@ public class FermeGUI extends JFrame {
         } catch (FermeException e) {
             erreur(e.getMessage());
         }
+    }
+
+    private void modifierPoisson() {
+        PoissonRef ref = (PoissonRef) poissonCombo.getSelectedItem();
+        if (ref == null) {
+            erreur("Sélectionnez un poisson.");
+            return;
+        }
+
+        JDialog dialog = new JDialog(this, "Modifier un poisson", true);
+        JTextField especeField = new JTextField(ref.poisson.getEspece(), 18);
+        JTextField quantiteField = new JTextField(ref.poisson.getPg() == null ? "" : String.valueOf(ref.poisson.getPg().getQuantity()), 8);
+        JTextField typeAlimentField = new JTextField(ref.poisson.getPg() == null ? "" : ref.poisson.getPg().getTypealiment(), 12);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(12, 12, 12, 12));
+        form.add(new JLabel("Espèce"), constraints(0, 0, 1, 1));
+        form.add(especeField, constraints(1, 0, 2, 1));
+        form.add(new JLabel("Qté alim."), constraints(0, 1, 1, 1));
+        form.add(quantiteField, constraints(1, 1, 1, 1));
+        form.add(new JLabel("Type alim."), constraints(2, 1, 1, 1));
+        form.add(typeAlimentField, constraints(3, 1, 1, 1));
+
+        JButton enregistrer = new JButton("Enregistrer");
+        enregistrer.addActionListener(e -> {
+            String espece = especeField.getText().trim();
+            double quantite = parseDouble(quantiteField.getText(), Double.NaN);
+            String typeAliment = typeAlimentField.getText().trim();
+            if (espece.isEmpty() || Double.isNaN(quantite) || typeAliment.isEmpty()) {
+                erreur("Vérifiez les données du poisson.");
+                return;
+            }
+            ref.poisson.setEspece(espece);
+            ref.poisson.setPg(new ProgrammeAlimentaire(quantite, typeAliment));
+            refreshAll();
+            dialog.dispose();
+            info("Poisson modifié.");
+        });
+
+        JButton annuler = new JButton("Annuler");
+        annuler.addActionListener(e -> dialog.dispose());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(annuler);
+        actions.add(enregistrer);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     private void enregistrerEvenementSanitaire() {
@@ -702,10 +1037,67 @@ public class FermeGUI extends JFrame {
         info("Événement sanitaire enregistré.");
     }
 
+    private void modifierEvenementSanitaire() {
+        EvenementSanitaireRef ref = (EvenementSanitaireRef) evenementSanitaireCombo.getSelectedItem();
+        if (ref == null) {
+            erreur("Sélectionnez un événement sanitaire.");
+            return;
+        }
+
+        JDialog dialog = new JDialog(this, "Modifier un événement sanitaire", true);
+        JTextField dateField = new JTextField(ref.evenement.getDate() == null ? "" : ref.evenement.getDate().toString(), 12);
+        JTextField descriptionField = new JTextField(ref.evenement.getDescription(), 24);
+        JTextField variationField = new JTextField(String.valueOf(ref.evenement.getVariationPoids()), 8);
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(12, 12, 12, 12));
+        form.add(new JLabel("Date"), constraints(0, 0, 1, 1));
+        form.add(dateField, constraints(1, 0, 1, 1));
+        form.add(new JLabel("Description"), constraints(2, 0, 1, 1));
+        form.add(descriptionField, constraints(3, 0, 2, 1));
+        form.add(new JLabel("Variation poids"), constraints(0, 1, 1, 1));
+        form.add(variationField, constraints(1, 1, 1, 1));
+
+        JButton enregistrer = new JButton("Enregistrer");
+        enregistrer.addActionListener(e -> {
+            LocalDate date = parseDate(dateField.getText());
+            String description = descriptionField.getText().trim();
+            double variation = parseDouble(variationField.getText(), Double.NaN);
+            if (date == null || description.isEmpty() || Double.isNaN(variation)) {
+                erreur("Vérifiez la date, la description et la variation.");
+                return;
+            }
+            ref.evenement.setDate(date);
+            ref.evenement.setDescription(description);
+            ref.evenement.setVariationPoids(variation);
+            refreshAll();
+            dialog.dispose();
+            info("Événement sanitaire modifié.");
+        });
+
+        JButton annuler = new JButton("Annuler");
+        annuler.addActionListener(e -> dialog.dispose());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(annuler);
+        actions.add(enregistrer);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
+    }
+
     private void ajouterCapteur() {
         ZoneRef ref = selectedZone(capteurZoneCombo);
         if (ref == null) {
             erreur("Sélectionnez une zone.");
+            return;
+        }
+        if (!ref.zone.isActif()) {
+            erreur("La zone est suspendue , impossible d'ajouter un capteur.");
             return;
         }
 
@@ -735,6 +1127,170 @@ public class FermeGUI extends JFrame {
         } catch (FermeException e) {
             erreur(e.getMessage());
         }
+    }
+
+    private void modifierCapteur() {
+        CapteurRef ref = (CapteurRef) capteurCombo.getSelectedItem();
+        if (ref == null) {
+            erreur("Sélectionnez un capteur.");
+            return;
+        }
+
+        JDialog dialog = new JDialog(this, "Modifier un capteur", true);
+        JTextField seuilMinField = new JTextField(String.valueOf(ref.capteur.getSeuilMin()), 8);
+        JTextField seuilMaxField = new JTextField(String.valueOf(ref.capteur.getSeuilMax()), 8);
+        JCheckBox actifBox = new JCheckBox("Capteur actif", ref.capteur.isActif());
+
+        JPanel form = new JPanel(new GridBagLayout());
+        form.setBorder(new EmptyBorder(12, 12, 12, 12));
+        form.add(new JLabel("Type"), constraints(0, 0, 1, 1));
+        form.add(new JLabel(ref.capteur.getClass().getSimpleName()), constraints(1, 0, 2, 1));
+        form.add(new JLabel("Seuil min"), constraints(0, 1, 1, 1));
+        form.add(seuilMinField, constraints(1, 1, 1, 1));
+        form.add(new JLabel("Seuil max"), constraints(2, 1, 1, 1));
+        form.add(seuilMaxField, constraints(3, 1, 1, 1));
+        form.add(actifBox, constraints(0, 2, 2, 1));
+
+        int row = 3;
+        final JTextField[] temperatureField = new JTextField[1];
+        final JTextField[] humiditeField = new JTextField[1];
+        final JTextField[] pluviometrieField = new JTextField[1];
+        final JTextField[] phField = new JTextField[1];
+        final JTextField[] azoteField = new JTextField[1];
+        final JTextField[] oxygeneField = new JTextField[1];
+        final JTextField[] gpsXField = new JTextField[1];
+        final JTextField[] gpsYField = new JTextField[1];
+        final JTextField[] biomTempField = new JTextField[1];
+        final JTextField[] biomLocXField = new JTextField[1];
+        final JTextField[] biomLocYField = new JTextField[1];
+        final JTextField[] biomActiviteField = new JTextField[1];
+
+        if (ref.capteur instanceof Environemental) {
+            Environemental capteur = (Environemental) ref.capteur;
+            temperatureField[0] = new JTextField(String.valueOf(capteur.getTemperature()), 8);
+            humiditeField[0] = new JTextField(String.valueOf(capteur.getHumidite()), 8);
+            pluviometrieField[0] = new JTextField(String.valueOf(capteur.getPluviometrie()), 8);
+            form.add(new JLabel("Température"), constraints(0, row, 1, 1));
+            form.add(temperatureField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("Humidité"), constraints(2, row, 1, 1));
+            form.add(humiditeField[0], constraints(3, row, 1, 1));
+            row++;
+            form.add(new JLabel("Pluviométrie"), constraints(0, row, 1, 1));
+            form.add(pluviometrieField[0], constraints(1, row, 1, 1));
+        } else if (ref.capteur instanceof Sol) {
+            Sol capteur = (Sol) ref.capteur;
+            temperatureField[0] = new JTextField(String.valueOf(capteur.getTemperature()), 8);
+            phField[0] = new JTextField(String.valueOf(capteur.getPH()), 8);
+            humiditeField[0] = new JTextField(String.valueOf(capteur.getHumidite()), 8);
+            azoteField[0] = new JTextField(String.valueOf(capteur.getAzote()), 8);
+            form.add(new JLabel("Température"), constraints(0, row, 1, 1));
+            form.add(temperatureField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("pH"), constraints(2, row, 1, 1));
+            form.add(phField[0], constraints(3, row, 1, 1));
+            row++;
+            form.add(new JLabel("Humidité"), constraints(0, row, 1, 1));
+            form.add(humiditeField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("Azote"), constraints(2, row, 1, 1));
+            form.add(azoteField[0], constraints(3, row, 1, 1));
+        } else if (ref.capteur instanceof Eau) {
+            Eau capteur = (Eau) ref.capteur;
+            temperatureField[0] = new JTextField(String.valueOf(capteur.getTemperature()), 8);
+            oxygeneField[0] = new JTextField(String.valueOf(capteur.getOxygene()), 8);
+            form.add(new JLabel("Température"), constraints(0, row, 1, 1));
+            form.add(temperatureField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("Oxygène"), constraints(2, row, 1, 1));
+            form.add(oxygeneField[0], constraints(3, row, 1, 1));
+        } else if (ref.capteur instanceof GPS) {
+            GPS capteur = (GPS) ref.capteur;
+            gpsXField[0] = new JTextField(String.valueOf(capteur.getX()), 8);
+            gpsYField[0] = new JTextField(String.valueOf(capteur.getY()), 8);
+            form.add(new JLabel("X"), constraints(0, row, 1, 1));
+            form.add(gpsXField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("Y"), constraints(2, row, 1, 1));
+            form.add(gpsYField[0], constraints(3, row, 1, 1));
+        } else if (ref.capteur instanceof Biometrique) {
+            Biometrique capteur = (Biometrique) ref.capteur;
+            biomTempField[0] = new JTextField(String.valueOf(capteur.getTemperature()), 8);
+            biomActiviteField[0] = new JTextField(String.valueOf(capteur.getNiveau_activite()), 8);
+            GPS loc = capteur.getLoc();
+            biomLocXField[0] = new JTextField(loc == null ? "" : String.valueOf(loc.getX()), 8);
+            biomLocYField[0] = new JTextField(loc == null ? "" : String.valueOf(loc.getY()), 8);
+            form.add(new JLabel("Température"), constraints(0, row, 1, 1));
+            form.add(biomTempField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("Loc X"), constraints(2, row, 1, 1));
+            form.add(biomLocXField[0], constraints(3, row, 1, 1));
+            row++;
+            form.add(new JLabel("Loc Y"), constraints(0, row, 1, 1));
+            form.add(biomLocYField[0], constraints(1, row, 1, 1));
+            form.add(new JLabel("Niveau activité"), constraints(2, row, 1, 1));
+            form.add(biomActiviteField[0], constraints(3, row, 1, 1));
+        }
+
+        JButton enregistrer = new JButton("Enregistrer");
+        enregistrer.addActionListener(e -> {
+            double min = parseDouble(seuilMinField.getText(), Double.NaN);
+            double max = parseDouble(seuilMaxField.getText(), Double.NaN);
+            if (Double.isNaN(min) || Double.isNaN(max) || min >= max) {
+                erreur("Les seuils sont invalides.");
+                return;
+            }
+
+            ref.capteur.configurerSeuils(min, max);
+            if (actifBox.isSelected()) {
+                ref.capteur.activer();
+            } else {
+                ref.capteur.desactiver();
+            }
+
+            try {
+                if (ref.capteur instanceof Environemental) {
+                    Environemental capteur = (Environemental) ref.capteur;
+                    capteur.setTemperature(parseDouble(temperatureField[0].getText(), Double.NaN));
+                    capteur.setHumidite(parseDouble(humiditeField[0].getText(), Double.NaN));
+                    capteur.setPluviometrie(parseDouble(pluviometrieField[0].getText(), Double.NaN));
+                } else if (ref.capteur instanceof Sol) {
+                    Sol capteur = (Sol) ref.capteur;
+                    capteur.setTemperature(parseDouble(temperatureField[0].getText(), Double.NaN));
+                    capteur.setPH(parseDouble(phField[0].getText(), Double.NaN));
+                    capteur.setHumidite(parseDouble(humiditeField[0].getText(), Double.NaN));
+                    capteur.setAzote(parseDouble(azoteField[0].getText(), Double.NaN));
+                } else if (ref.capteur instanceof Eau) {
+                    Eau capteur = (Eau) ref.capteur;
+                    capteur.setTemperature(parseDouble(temperatureField[0].getText(), Double.NaN));
+                    capteur.setOxygene(parseDouble(oxygeneField[0].getText(), Double.NaN));
+                } else if (ref.capteur instanceof GPS) {
+                    GPS capteur = (GPS) ref.capteur;
+                    capteur.setX(parseDouble(gpsXField[0].getText(), Double.NaN));
+                    capteur.setY(parseDouble(gpsYField[0].getText(), Double.NaN));
+                } else if (ref.capteur instanceof Biometrique) {
+                    Biometrique capteur = (Biometrique) ref.capteur;
+                    capteur.setTemperature(parseDouble(biomTempField[0].getText(), Double.NaN));
+                    capteur.setLoc(new GPS(parseDouble(biomLocXField[0].getText(), Double.NaN), parseDouble(biomLocYField[0].getText(), Double.NaN)));
+                    capteur.setNiveau_activite(parseInt(biomActiviteField[0].getText(), 0));
+                }
+            } catch (Exception ex) {
+                erreur("Vérifiez les valeurs du capteur.");
+                return;
+            }
+
+            refreshAll();
+            dialog.dispose();
+            info("Capteur modifié.");
+        });
+
+        JButton annuler = new JButton("Annuler");
+        annuler.addActionListener(e -> dialog.dispose());
+
+        JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        actions.add(annuler);
+        actions.add(enregistrer);
+
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
+        dialog.add(actions, BorderLayout.SOUTH);
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     private void ouvrirFenetreCreationCapteur() {
@@ -923,16 +1479,18 @@ public class FermeGUI extends JFrame {
         }
     }
 
-    private void basculerCapteur() {
+    private void changerStatutCapteur(Statut statut) {
         CapteurRef ref = (CapteurRef) capteurCombo.getSelectedItem();
         if (ref == null) {
             erreur("Sélectionnez un capteur.");
             return;
         }
-        if (ref.capteur.isActif()) {
-            ref.capteur.desactiver();
-        } else {
+        if (statut == Statut.Actif) {
             ref.capteur.activer();
+        } else if (statut == Statut.Suspendu) {
+            ref.capteur.desactiver();
+        } else if (statut == Statut.Defaillant) {
+            ref.capteur.defaillir();
         }
         refreshAll();
     }
@@ -986,6 +1544,8 @@ public class FermeGUI extends JFrame {
     private void refreshAnimaux() {
         fillZoneModels();
         refreshAnimalCombo();
+        refreshPoissonCombo();
+        refreshEvenementSanitaireCombo();
         animauxArea.setText(construireTexteAnimaux());
     }
 
@@ -1006,6 +1566,17 @@ public class FermeGUI extends JFrame {
         }
         for (AlertRef ref : collecterHistoriqueAlertes()) {
             historyAlertsModel.addElement(ref);
+        }
+    }
+
+    private void refreshEvenementSanitaireCombo() {
+        EvenementSanitaireRef selected = (EvenementSanitaireRef) evenementSanitaireCombo.getSelectedItem();
+        evenementSanitaireCombo.removeAllItems();
+        for (EvenementSanitaire evenement : ferme.getEvenementsSanitaires()) {
+            evenementSanitaireCombo.addItem(new EvenementSanitaireRef(evenement));
+        }
+        if (selected != null) {
+            evenementSanitaireCombo.setSelectedItem(selected);
         }
     }
 
@@ -1100,6 +1671,7 @@ public class FermeGUI extends JFrame {
     }
 
     private void refreshPlantationCombo() {
+        PlantationRef selected = (PlantationRef) plantationCombo.getSelectedItem();
         plantationCombo.removeAllItems();
         ZoneRef ref = selectedZone(cultureZoneCombo);
         if (ref == null || !(ref.zone instanceof Culture)) {
@@ -1109,9 +1681,13 @@ public class FermeGUI extends JFrame {
         for (Plantation plantation : plantations) {
             plantationCombo.addItem(new PlantationRef(ref.zone, plantation));
         }
+        if (selected != null) {
+            plantationCombo.setSelectedItem(selected);
+        }
     }
 
     private void refreshAnimalCombo() {
+        AnimalRef selected = (AnimalRef) animalCombo.getSelectedItem();
         animalCombo.removeAllItems();
         ZoneRef ref = selectedZone(animalerieZoneCombo);
         if (ref == null || !(ref.zone instanceof Animalerie)) {
@@ -1120,9 +1696,28 @@ public class FermeGUI extends JFrame {
         for (Animal animal : trierAnimaux(((Animalerie) ref.zone).getKouri())) {
             animalCombo.addItem(new AnimalRef(ref.zone, animal));
         }
+        if (selected != null) {
+            animalCombo.setSelectedItem(selected);
+        }
+    }
+
+    private void refreshPoissonCombo() {
+        PoissonRef selected = (PoissonRef) poissonCombo.getSelectedItem();
+        poissonCombo.removeAllItems();
+        ZoneRef ref = selectedZone(aquacoleZoneCombo);
+        if (ref == null || !(ref.zone instanceof Aquacole)) {
+            return;
+        }
+        for (Poisson poisson : trierPoissons(((Aquacole) ref.zone).getAquarium())) {
+            poissonCombo.addItem(new PoissonRef(ref.zone, poisson));
+        }
+        if (selected != null) {
+            poissonCombo.setSelectedItem(selected);
+        }
     }
 
     private void refreshCapteurCombo() {
+        CapteurRef selected = (CapteurRef) capteurCombo.getSelectedItem();
         capteurCombo.removeAllItems();
         ZoneRef ref = selectedZone(capteurZoneCombo);
         if (ref == null) {
@@ -1130,6 +1725,9 @@ public class FermeGUI extends JFrame {
         }
         for (Capteur capteur : trierCapteurs(ref.zone.getMaintenance())) {
             capteurCombo.addItem(new CapteurRef(ref.zone, capteur));
+        }
+        if (selected != null) {
+            capteurCombo.setSelectedItem(selected);
         }
     }
 
@@ -1564,9 +2162,68 @@ public class FermeGUI extends JFrame {
         releveLonField.setText("");
     }
 
+    private void remplirChampsPlantation(PlantationRef ref) {
+        if (ref == null) {
+            return;
+        }
+        plantationTypeField.setText(ref.plantation.getType() == null ? "" : ref.plantation.getType());
+        plantationPlantField.setText(ref.plantation.getDate_plant() == null ? "" : ref.plantation.getDate_plant().toString());
+        plantationRecolteField.setText(ref.plantation.getDate_rec() == null ? "" : ref.plantation.getDate_rec().toString());
+        plantationPhMinField.setText(String.valueOf(ref.plantation.getPhMin()));
+        plantationPhMaxField.setText(String.valueOf(ref.plantation.getPhMax()));
+        plantationHumiditeField.setText(String.valueOf(ref.plantation.getHumidite()));
+        if (ref.plantation.getEpan() != null) {
+            stadeCombo.setSelectedItem(ref.plantation.getEpan().name());
+        }
+    }
+
+    private void remplirChampsAnimal(AnimalRef ref) {
+        if (ref == null) {
+            return;
+        }
+        if (ref.animal.getGen() != null) {
+            especeCombo.setSelectedItem(ref.animal.getGen().name());
+        }
+        if (ref.animal.getSante() != null) {
+            santeCombo.setSelectedItem(ref.animal.getSante().name());
+        }
+        animalAgeField.setText(String.valueOf(ref.animal.getAge()));
+        animalPoidsField.setText(String.valueOf(ref.animal.getPoids()));
+        if (ref.animal.getPg() != null) {
+            alimentQuantiteField.setText(String.valueOf(ref.animal.getPg().getQuantity()));
+            alimentTypeField.setText(ref.animal.getPg().getTypealiment());
+        }
+    }
+
+    private void remplirChampsPoisson(PoissonRef ref) {
+        if (ref == null) {
+            return;
+        }
+        poissonEspeceField.setText(ref.poisson.getEspece() == null ? "" : ref.poisson.getEspece());
+        if (ref.poisson.getPg() != null) {
+            poissonQuantiteField.setText(String.valueOf(ref.poisson.getPg().getQuantity()));
+        }
+    }
+
+    private void remplirChampsEvenementSanitaire(EvenementSanitaireRef ref) {
+        if (ref == null) {
+            return;
+        }
+        evenementVariationField.setText(String.valueOf(ref.evenement.getVariationPoids()));
+        evenementDescriptionField.setText(ref.evenement.getDescription() == null ? "" : ref.evenement.getDescription());
+    }
+
     private double parseDouble(String value, double fallback) {
         try {
             return Double.parseDouble(value.trim().replace(',', '.'));
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    private int parseInt(String value, int fallback) {
+        try {
+            return Integer.parseInt(value.trim());
         } catch (Exception e) {
             return fallback;
         }
@@ -1606,6 +2263,23 @@ public class FermeGUI extends JFrame {
         public String toString() {
             return zone.getNom() + " [" + zone.getClass().getSimpleName() + ", " + (zone.isActif() ? "ACTIF" : "SUSPENDU") + "]";
         }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof ZoneRef)) {
+                return false;
+            }
+            ZoneRef ref = (ZoneRef) other;
+            return zone != null && ref.zone != null && zone.getId().equals(ref.zone.getId());
+        }
+
+        @Override
+        public int hashCode() {
+            return zone == null || zone.getId() == null ? 0 : zone.getId().hashCode();
+        }
     }
 
     private static final class PlantationRef {
@@ -1622,6 +2296,25 @@ public class FermeGUI extends JFrame {
             String type = plantation.getType() == null || plantation.getType().isEmpty() ? "Type non renseigné" : plantation.getType();
             return type + " | " + plantation.getDate_plant() + " -> " + plantation.getDate_rec() + " [" + zone.getNom() + ", " + plantation.getEpan() + "]";
         }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof PlantationRef)) {
+                return false;
+            }
+            PlantationRef ref = (PlantationRef) other;
+            return zone != null && ref.zone != null && zone.getId().equals(ref.zone.getId()) && plantation == ref.plantation;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = zone == null || zone.getId() == null ? 0 : zone.getId().hashCode();
+            result = 31 * result + System.identityHashCode(plantation);
+            return result;
+        }
     }
 
     private static final class AnimalRef {
@@ -1637,6 +2330,89 @@ public class FermeGUI extends JFrame {
         public String toString() {
             return animal.getGen() + " | âge=" + animal.getAge() + " | poids=" + animal.getPoids() + " | " + zone.getNom();
         }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof AnimalRef)) {
+                return false;
+            }
+            AnimalRef ref = (AnimalRef) other;
+            return animal != null && ref.animal != null && animal.getId() != null && animal.getId().equals(ref.animal.getId());
+        }
+
+        @Override
+        public int hashCode() {
+            return animal == null || animal.getId() == null ? 0 : animal.getId().hashCode();
+        }
+    }
+
+    private static final class PoissonRef {
+        private final ZoneGeographique zone;
+        private final Poisson poisson;
+
+        private PoissonRef(ZoneGeographique zone, Poisson poisson) {
+            this.zone = zone;
+            this.poisson = poisson;
+        }
+
+        @Override
+        public String toString() {
+            return poisson.getEspece() + " | " + zone.getNom();
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof PoissonRef)) {
+                return false;
+            }
+            PoissonRef ref = (PoissonRef) other;
+            return zone != null && ref.zone != null && zone.getId().equals(ref.zone.getId()) && poisson == ref.poisson;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = zone == null || zone.getId() == null ? 0 : zone.getId().hashCode();
+            result = 31 * result + System.identityHashCode(poisson);
+            return result;
+        }
+    }
+
+    private static final class EvenementSanitaireRef {
+        private final EvenementSanitaire evenement;
+
+        private EvenementSanitaireRef(EvenementSanitaire evenement) {
+            this.evenement = evenement;
+        }
+
+        @Override
+        public String toString() {
+            Animal animal = evenement.getAnimal();
+            String animalLabel = animal == null || animal.getId() == null ? "Animal ?" : animal.getId().toString();
+            return evenement.getDate() + " | " + animalLabel + " | " + evenement.getDescription();
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof EvenementSanitaireRef)) {
+                return false;
+            }
+            EvenementSanitaireRef ref = (EvenementSanitaireRef) other;
+            return evenement == ref.evenement;
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(evenement);
+        }
     }
 
     private static final class CapteurRef {
@@ -1651,6 +2427,23 @@ public class FermeGUI extends JFrame {
         @Override
         public String toString() {
             return capteur.getClass().getSimpleName() + " | " + (capteur.isActif() ? "ACTIF" : "SUSPENDU") + " | " + zone.getNom();
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            if (this == other) {
+                return true;
+            }
+            if (!(other instanceof CapteurRef)) {
+                return false;
+            }
+            CapteurRef ref = (CapteurRef) other;
+            return capteur != null && ref.capteur != null && capteur.getId() != null && capteur.getId().equals(ref.capteur.getId());
+        }
+
+        @Override
+        public int hashCode() {
+            return capteur == null || capteur.getId() == null ? 0 : capteur.getId().hashCode();
         }
     }
 
