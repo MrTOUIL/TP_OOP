@@ -16,7 +16,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.DefaultComboBoxModel;
@@ -76,6 +80,7 @@ public class FermeGUI extends JFrame {
     private final JComboBox<String> stadeCombo = new JComboBox<>(new String[]{"Semis", "Germination", "Croissance", "Maturite", "Recolte"});
     private final JComboBox<String> stadeMajCombo = new JComboBox<>(new String[]{"Semis", "Germination", "Croissance", "Maturite", "Recolte"});
     private final JComboBox<String> graviteCombo = new JComboBox<>(new String[]{"Avertissement", "Critique"});
+    private final JComboBox<String> triModeCombo = new JComboBox<>(new String[]{"Alphabetique", "Date"});
 
     private final JComboBox<PlantationRef> plantationCombo = new JComboBox<>();
     private final JComboBox<AnimalRef> animalCombo = new JComboBox<>();
@@ -123,6 +128,14 @@ public class FermeGUI extends JFrame {
         super("Smart Farm - Interface Graphique");
         this.ferme = ferme;
         construireFenetre();
+        triModeCombo.setSelectedItem(ferme.getModeTri() == Ferme.TriMode.DATE ? "Date" : "Alphabetique");
+        triModeCombo.addItemListener(e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                String valeur = (String) triModeCombo.getSelectedItem();
+                ferme.setModeTri("Date".equals(valeur) ? Ferme.TriMode.DATE : Ferme.TriMode.ALPHABETIQUE);
+                refreshAll();
+            }
+        });
         capteurZoneCombo.addItemListener(e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
                 mettreAJourTypesCapteursPrincipaux();
@@ -161,7 +174,17 @@ public class FermeGUI extends JFrame {
         titre.setFont(new Font("SansSerif", Font.BOLD, 24));
         titre.setBorder(new EmptyBorder(6, 6, 6, 6));
         titre.setForeground(new Color(34, 51, 68));
-        root.add(titre, BorderLayout.NORTH);
+        JPanel header = new JPanel(new BorderLayout(10, 0));
+        header.setOpaque(false);
+        header.add(titre, BorderLayout.CENTER);
+
+        JPanel triPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        triPanel.setOpaque(false);
+        triPanel.add(new JLabel("Tri"));
+        triPanel.add(triModeCombo);
+        header.add(triPanel, BorderLayout.EAST);
+
+        root.add(header, BorderLayout.NORTH);
 
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Zones", creerPanelZones());
@@ -319,6 +342,10 @@ public class FermeGUI extends JFrame {
         JButton rapportAnimaux = new JButton("Rapport détaillé");
         rapportAnimaux.addActionListener(e -> ouvrirRapportDetaille("Rapport détaillé - animaux", rapportAnimauxDetaille()));
         panel.add(rapportAnimaux, constraints(2, 4, 2, 1));
+
+        JButton rapportSanitaire = new JButton("Rapport sanitaire");
+        rapportSanitaire.addActionListener(e -> ouvrirRapportDetaille("Rapport sanitaire", rapportSanitaireDetaille()));
+        panel.add(rapportSanitaire, constraints(4, 4, 2, 1));
 
         panel.add(new JLabel("Aquacole"), constraints(0, 5, 1, 1));
         panel.add(aquacoleZoneCombo, constraints(1, 5, 2, 1));
@@ -1078,7 +1105,8 @@ public class FermeGUI extends JFrame {
         if (ref == null || !(ref.zone instanceof Culture)) {
             return;
         }
-        for (Plantation plantation : ((Culture) ref.zone).getTerre()) {
+        List<Plantation> plantations = trierPlantations(((Culture) ref.zone).getTerre());
+        for (Plantation plantation : plantations) {
             plantationCombo.addItem(new PlantationRef(ref.zone, plantation));
         }
     }
@@ -1089,7 +1117,7 @@ public class FermeGUI extends JFrame {
         if (ref == null || !(ref.zone instanceof Animalerie)) {
             return;
         }
-        for (Animal animal : ((Animalerie) ref.zone).getKouri()) {
+        for (Animal animal : trierAnimaux(((Animalerie) ref.zone).getKouri())) {
             animalCombo.addItem(new AnimalRef(ref.zone, animal));
         }
     }
@@ -1100,7 +1128,7 @@ public class FermeGUI extends JFrame {
         if (ref == null) {
             return;
         }
-        for (Capteur capteur : ref.zone.getMaintenance()) {
+        for (Capteur capteur : trierCapteurs(ref.zone.getMaintenance())) {
             capteurCombo.addItem(new CapteurRef(ref.zone, capteur));
         }
     }
@@ -1152,8 +1180,9 @@ public class FermeGUI extends JFrame {
                 if (culture.getTerre().isEmpty()) {
                     builder.append("  Aucune plantation enregistrée.").append(System.lineSeparator());
                 } else {
-                    for (int i = 0; i < culture.getTerre().size(); i++) {
-                        Plantation plantation = culture.getTerre().get(i);
+                    List<Plantation> plantations = trierPlantations(culture.getTerre());
+                    for (int i = 0; i < plantations.size(); i++) {
+                        Plantation plantation = plantations.get(i);
                         builder.append("  Plantation ").append(i + 1).append(":").append(System.lineSeparator());
                         builder.append("    Type: ").append(plantation.getType()).append(System.lineSeparator());
                         builder.append("    Date plantation: ").append(plantation.getDate_plant()).append(System.lineSeparator());
@@ -1182,7 +1211,7 @@ public class FermeGUI extends JFrame {
                     builder.append("  Aucun animal enregistré.").append(System.lineSeparator());
                 } else {
                     int index = 1;
-                    for (Animal animal : animalerie.getKouri()) {
+                    for (Animal animal : trierAnimaux(animalerie.getKouri())) {
                         builder.append("  Animal ").append(index).append(":").append(System.lineSeparator());
                         builder.append("    ID: ").append(animal.getId()).append(System.lineSeparator());
                         builder.append("    Espèce: ").append(animal.getGen()).append(System.lineSeparator());
@@ -1203,7 +1232,7 @@ public class FermeGUI extends JFrame {
                     builder.append("  Aucun poisson enregistré.").append(System.lineSeparator());
                 } else {
                     int index = 1;
-                    for (Poisson poisson : aquacole.getAquarium()) {
+                    for (Poisson poisson : trierPoissons(aquacole.getAquarium())) {
                         builder.append("  Poisson ").append(index).append(":").append(System.lineSeparator());
                         builder.append("    Espèce: ").append(poisson.getEspece()).append(System.lineSeparator());
                         builder.append("    Programme alimentaire: ").append(formatProgramme(poisson.getPg())).append(System.lineSeparator());
@@ -1224,7 +1253,7 @@ public class FermeGUI extends JFrame {
                 builder.append("  Aucun capteur.").append(System.lineSeparator());
             } else {
                 int index = 1;
-                for (Capteur capteur : zone.getMaintenance()) {
+                for (Capteur capteur : trierCapteurs(zone.getMaintenance())) {
                     builder.append("  Capteur ").append(index).append(":").append(System.lineSeparator());
                     builder.append("    Type: ").append(capteur.getClass().getSimpleName()).append(System.lineSeparator());
                     builder.append("    ID: ").append(capteur.getId()).append(System.lineSeparator());
@@ -1320,7 +1349,7 @@ public class FermeGUI extends JFrame {
             if (zone instanceof Culture) {
                 Culture culture = (Culture) zone;
                 builder.append(culture.getNom()).append(System.lineSeparator());
-                List<Plantation> plantations = culture.getTerre();
+                List<Plantation> plantations = trierPlantations(culture.getTerre());
                 if (plantations.isEmpty()) {
                     builder.append("  Aucune plantation").append(System.lineSeparator());
                 } else {
@@ -1357,7 +1386,7 @@ public class FermeGUI extends JFrame {
                 if (animalerie.getKouri().isEmpty()) {
                     builder.append("  Aucun animal").append(System.lineSeparator());
                 } else {
-                    for (Animal animal : animalerie.getKouri()) {
+                    for (Animal animal : trierAnimaux(animalerie.getKouri())) {
                         builder.append("  ")
                                .append(animal.getGen())
                                .append(" | âge=")
@@ -1377,7 +1406,7 @@ public class FermeGUI extends JFrame {
                 if (aquacole.getAquarium().isEmpty()) {
                     builder.append("  Aucun poisson").append(System.lineSeparator());
                 } else {
-                    for (Poisson poisson : aquacole.getAquarium()) {
+                    for (Poisson poisson : trierPoissons(aquacole.getAquarium())) {
                         builder.append("  ")
                                .append(poisson.getEspece())
                                .append(" | alimentation=")
@@ -1397,7 +1426,7 @@ public class FermeGUI extends JFrame {
             if (zone.getMaintenance().isEmpty()) {
                 builder.append("  Aucun capteur").append(System.lineSeparator());
             } else {
-                for (Capteur capteur : zone.getMaintenance()) {
+                for (Capteur capteur : trierCapteurs(zone.getMaintenance())) {
                     builder.append("  ")
                            .append(capteur.getClass().getSimpleName())
                            .append(" | ")
@@ -1426,6 +1455,48 @@ public class FermeGUI extends JFrame {
             builder.append(ref).append(System.lineSeparator());
         }
         return builder.toString();
+    }
+
+    private String rapportSanitaireDetaille() {
+        return ferme.rapportEvenementsSanitairesDetaille();
+    }
+
+    private List<Plantation> trierPlantations(Collection<Plantation> plantations) {
+        List<Plantation> resultat = new ArrayList<>(plantations);
+        if (ferme.getModeTri() == Ferme.TriMode.DATE) {
+            resultat.sort(Comparator
+                .comparing(Plantation::getDate_plant, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Plantation::getDate_rec, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(plantation -> plantation.getType() == null ? "" : plantation.getType(), String.CASE_INSENSITIVE_ORDER));
+        } else {
+            resultat.sort(Comparator
+                .comparing((Plantation plantation) -> plantation.getType() == null ? "" : plantation.getType(), String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(Plantation::getDate_plant, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Plantation::getDate_rec, Comparator.nullsLast(Comparator.naturalOrder())));
+        }
+        return resultat;
+    }
+
+    private List<Animal> trierAnimaux(Collection<Animal> animaux) {
+        List<Animal> resultat = new ArrayList<>(animaux);
+        resultat.sort(Comparator
+            .comparing((Animal animal) -> animal.getGen() == null ? "" : animal.getGen().name(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(animal -> animal.getId() == null ? "" : animal.getId().toString()));
+        return resultat;
+    }
+
+    private List<Poisson> trierPoissons(Collection<Poisson> poissons) {
+        List<Poisson> resultat = new ArrayList<>(poissons);
+        resultat.sort(Comparator.comparing(poisson -> poisson.getEspece() == null ? "" : poisson.getEspece(), String.CASE_INSENSITIVE_ORDER));
+        return resultat;
+    }
+
+    private List<Capteur> trierCapteurs(Collection<Capteur> capteurs) {
+        List<Capteur> resultat = new ArrayList<>(capteurs);
+        resultat.sort(Comparator
+            .comparing((Capteur capteur) -> capteur.getClass().getSimpleName(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(capteur -> capteur.getId() == null ? "" : capteur.getId().toString()));
+        return resultat;
     }
 
     private List<AlertRef> collecterAlertesActives() {

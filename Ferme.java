@@ -3,15 +3,25 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
 public class Ferme {
 
+    public enum TriMode {
+        ALPHABETIQUE,
+        DATE
+    }
+
     private final List<ZoneGeographique> zones = new ArrayList<>();
     private final List<EvenementSanitaire> evenementsSanitaires = new ArrayList<>();
     private final List<Alerte> historiqueAlertes = new ArrayList<>();
+    private TriMode modeTri = TriMode.ALPHABETIQUE;
 
     public boolean ajouterZone(ZoneGeographique zone) throws FermeException {
         if (zone == null) {
@@ -21,7 +31,17 @@ public class Ferme {
     }
 
     public List<ZoneGeographique> getZones() {
-        return Collections.unmodifiableList(zones);
+        return Collections.unmodifiableList(trierZones(zones));
+    }
+
+    public TriMode getModeTri() {
+        return modeTri;
+    }
+
+    public void setModeTri(TriMode modeTri) {
+        if (modeTri != null) {
+            this.modeTri = modeTri;
+        }
     }
 
     public ZoneGeographique chercherZoneParId(UUID id) {
@@ -118,7 +138,7 @@ public class Ferme {
     }
 
     public List<EvenementSanitaire> getEvenementsSanitaires() {
-        return Collections.unmodifiableList(evenementsSanitaires);
+        return Collections.unmodifiableList(trierEvenementsSanitaires(evenementsSanitaires, modeTri));
     }
 
     public void enregistrerReleve(Capteur capteur, Releve releve) throws FermeException {
@@ -220,7 +240,7 @@ public class Ferme {
 
     public String resumeZones() {
         StringBuilder builder = new StringBuilder();
-        for (ZoneGeographique zone : zones) {
+        for (ZoneGeographique zone : trierZones(zones)) {
             builder.append(zone.getId())
                    .append(" | ")
                    .append(zone.getNom())
@@ -234,7 +254,7 @@ public class Ferme {
     }
 
     public List<Alerte> getHistoriqueAlertes() {
-        return Collections.unmodifiableList(historiqueAlertes);
+        return Collections.unmodifiableList(trierAlertes(historiqueAlertes));
     }
 
     public List<Releve> getHistoriqueReleves() {
@@ -242,7 +262,172 @@ public class Ferme {
         for (ZoneGeographique zone : zones) {
             releves.addAll(zone.getRel());
         }
+        releves.sort(Comparator.comparing(Releve::getHorodatage, Comparator.nullsLast(Comparator.naturalOrder())));
         return releves;
+    }
+
+    public String rapportEvenementsSanitairesDetaille() {
+        StringBuilder builder = new StringBuilder();
+        List<Animal> animaux = tousLesAnimauxTries(modeTri);
+        builder.append("Rapport détaillé des événements sanitaires").append(System.lineSeparator());
+        builder.append("Tri: ").append(modeTri == TriMode.DATE ? "DATE" : "ALPHABETIQUE").append(System.lineSeparator());
+        builder.append("Animaux concernés: ").append(animaux.size()).append(System.lineSeparator());
+        builder.append(System.lineSeparator());
+
+        if (animaux.isEmpty()) {
+            builder.append("Aucun animal enregistré.").append(System.lineSeparator());
+            return builder.toString();
+        }
+
+        Map<UUID, List<EvenementSanitaire>> evenementsParAnimal = new LinkedHashMap<>();
+        for (Animal animal : animaux) {
+            evenementsParAnimal.put(animal.getId(), new ArrayList<>());
+        }
+        for (EvenementSanitaire evenement : evenementsSanitaires) {
+            Animal animal = evenement.getAnimal();
+            if (animal != null && evenementsParAnimal.containsKey(animal.getId())) {
+                evenementsParAnimal.get(animal.getId()).add(evenement);
+            }
+        }
+
+        for (Animal animal : animaux) {
+            List<EvenementSanitaire> evenements = trierEvenementsSanitaires(evenementsParAnimal.get(animal.getId()), modeTri);
+
+            builder.append(formatAnimalReference(animal)).append(System.lineSeparator());
+            builder.append("  Événements: ").append(evenements.size()).append(System.lineSeparator());
+            if (evenements.isEmpty()) {
+                builder.append("  Aucun événement sanitaire enregistré.").append(System.lineSeparator());
+            } else {
+                for (int i = 0; i < evenements.size(); i++) {
+                    EvenementSanitaire evenement = evenements.get(i);
+                    builder.append("  ").append(i + 1).append(". ")
+                           .append(evenement.getDate())
+                           .append(" | ")
+                           .append(evenement.getDescription() == null || evenement.getDescription().isEmpty() ? "Description non renseignée" : evenement.getDescription())
+                           .append(" | variation poids=")
+                           .append(evenement.getVariationPoids())
+                           .append(System.lineSeparator());
+                }
+            }
+            builder.append(System.lineSeparator());
+        }
+
+        return builder.toString();
+    }
+
+    private List<Animal> tousLesAnimauxTries(TriMode modeTri) {
+        List<Animal> animaux = new ArrayList<>();
+        for (ZoneGeographique zone : zones) {
+            if (zone instanceof Animalerie) {
+                animaux.addAll(((Animalerie) zone).getKouri());
+            }
+        }
+        if (modeTri == TriMode.DATE) {
+            animaux.sort(Comparator
+                .comparing((Animal animal) -> premiereDateEvenement(animal), Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(animal -> animal.getGen() == null ? "" : animal.getGen().name(), String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(animal -> animal.getId() == null ? "" : animal.getId().toString()));
+            return animaux;
+        }
+        return trierAnimaux(animaux);
+    }
+
+    private static List<ZoneGeographique> trierZones(Collection<ZoneGeographique> source) {
+        List<ZoneGeographique> resultat = new ArrayList<>(source);
+        resultat.sort(Comparator.comparing(zone -> zone.getNom() == null ? "" : zone.getNom(), String.CASE_INSENSITIVE_ORDER));
+        return resultat;
+    }
+
+    private static List<Plantation> trierPlantations(Collection<Plantation> source, TriMode modeTri) {
+        List<Plantation> resultat = new ArrayList<>(source);
+        if (modeTri == TriMode.DATE) {
+            resultat.sort(Comparator
+                .comparing(Plantation::getDate_plant, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Plantation::getDate_rec, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(plantation -> plantation.getType() == null ? "" : plantation.getType(), String.CASE_INSENSITIVE_ORDER));
+        } else {
+            resultat.sort(Comparator
+                .comparing((Plantation plantation) -> plantation.getType() == null ? "" : plantation.getType(), String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(Plantation::getDate_plant, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(Plantation::getDate_rec, Comparator.nullsLast(Comparator.naturalOrder())));
+        }
+        return resultat;
+    }
+
+    private static List<Animal> trierAnimaux(Collection<Animal> source) {
+        List<Animal> resultat = new ArrayList<>(source);
+        resultat.sort(Comparator
+            .comparing((Animal animal) -> animal.getGen() == null ? "" : animal.getGen().name(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(animal -> animal.getId() == null ? "" : animal.getId().toString()));
+        return resultat;
+    }
+
+    private static List<Poisson> trierPoissons(Collection<Poisson> source) {
+        List<Poisson> resultat = new ArrayList<>(source);
+        resultat.sort(Comparator.comparing(poisson -> poisson.getEspece() == null ? "" : poisson.getEspece(), String.CASE_INSENSITIVE_ORDER));
+        return resultat;
+    }
+
+    private static List<Capteur> trierCapteurs(Collection<Capteur> source) {
+        List<Capteur> resultat = new ArrayList<>(source);
+        resultat.sort(Comparator
+            .comparing((Capteur capteur) -> capteur.getClass().getSimpleName(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(capteur -> capteur.getId() == null ? "" : capteur.getId().toString()));
+        return resultat;
+    }
+
+    private static List<Alerte> trierAlertes(Collection<Alerte> source) {
+        List<Alerte> resultat = new ArrayList<>(source);
+        resultat.sort(Comparator
+            .comparing(Alerte::getDate, Comparator.nullsLast(Comparator.naturalOrder()))
+            .thenComparing(alerte -> alerte.getGrv() == null ? "" : alerte.getGrv().name(), String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(alerte -> alerte.getMessage() == null ? "" : alerte.getMessage(), String.CASE_INSENSITIVE_ORDER));
+        return resultat;
+    }
+
+    private static List<EvenementSanitaire> trierEvenementsSanitaires(Collection<EvenementSanitaire> source, TriMode modeTri) {
+        List<EvenementSanitaire> resultat = new ArrayList<>(source);
+        if (modeTri == TriMode.DATE) {
+            resultat.sort(Comparator
+                .comparing(EvenementSanitaire::getDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(e -> e.getAnimal() == null || e.getAnimal().getGen() == null ? "" : e.getAnimal().getGen().name(), String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(e -> e.getAnimal() == null || e.getAnimal().getId() == null ? "" : e.getAnimal().getId().toString())
+                .thenComparing(e -> e.getDescription() == null ? "" : e.getDescription(), String.CASE_INSENSITIVE_ORDER));
+        } else {
+            resultat.sort(Comparator
+                .comparing((EvenementSanitaire evenement) -> evenement.getAnimal() == null || evenement.getAnimal().getGen() == null ? "" : evenement.getAnimal().getGen().name(), String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(e -> e.getAnimal() == null || e.getAnimal().getId() == null ? "" : e.getAnimal().getId().toString())
+                .thenComparing(EvenementSanitaire::getDate, Comparator.nullsLast(Comparator.naturalOrder()))
+                .thenComparing(e -> e.getDescription() == null ? "" : e.getDescription(), String.CASE_INSENSITIVE_ORDER));
+        }
+        return resultat;
+    }
+
+    private LocalDate premiereDateEvenement(Animal animal) {
+        if (animal == null) {
+            return null;
+        }
+        LocalDate premiereDate = null;
+        UUID animalId = animal.getId();
+        for (EvenementSanitaire evenement : evenementsSanitaires) {
+            Animal evenementAnimal = evenement.getAnimal();
+            if (evenementAnimal != null && animalId.equals(evenementAnimal.getId())) {
+                LocalDate date = evenement.getDate();
+                if (date != null && (premiereDate == null || date.isBefore(premiereDate))) {
+                    premiereDate = date;
+                }
+            }
+        }
+        return premiereDate;
+    }
+
+    private static String formatAnimalReference(Animal animal) {
+        return "Animal: "
+            + (animal.getGen() == null ? "non renseigné" : animal.getGen())
+            + " | ID: " + animal.getId()
+            + " | âge: " + animal.getAge()
+            + " | poids: " + animal.getPoids()
+            + " | santé: " + animal.getSante();
     }
 
     // ============================================================
@@ -315,6 +500,7 @@ public class Ferme {
         System.out.println("║ 4. Gérer les capteurs et relevés                   ║");
         System.out.println("║ 5. Gérer les alertes                               ║");
         System.out.println("║ 6. Afficher le résumé général de la ferme          ║");
+        System.out.println("║ 7. Changer le tri global                           ║");
         System.out.println("║ 0. Quitter le programme                            ║");
         System.out.println("╚════════════════════════════════════════════════════╝");
         System.out.print("Votre choix: ");
@@ -466,7 +652,7 @@ public class Ferme {
                 System.out.println("Aucune culture.");
             } else {
                 int idx = 1;
-                for (Plantation p : culture.getTerre()) {
+                for (Plantation p : trierPlantations(culture.getTerre(), ferme.getModeTri())) {
                     System.out.println(idx + ". Plantation - Semis: " + p.getDate_plant() + 
                         " | Récolte: " + p.getDate_rec() + " | Stade: " + p.getEpan());
                     idx++;
@@ -479,7 +665,7 @@ public class Ferme {
                 System.out.println("Aucun animal.");
             } else {
                 int idx = 1;
-                for (Animal a : animalerie.getKouri()) {
+                for (Animal a : trierAnimaux(animalerie.getKouri())) {
                     System.out.println(idx + ". " + a.getGen() + " - Âge: " + a.getAge() + 
                         "ans | Poids: " + a.getPoids() + "kg | État: " + a.getSante());
                     idx++;
@@ -492,7 +678,7 @@ public class Ferme {
                 System.out.println("Aucun poisson.");
             } else {
                 int idx = 1;
-                for (Poisson p : aquacole.getAquarium()) {
+                for (Poisson p : trierPoissons(aquacole.getAquarium())) {
                     System.out.println(idx + ". " + p.getEspece() + " - Alimentation: " + 
                         p.getPg().getTypealiment());
                     idx++;
@@ -505,7 +691,7 @@ public class Ferme {
             System.out.println("Aucun capteur.");
         } else {
             int idx = 1;
-            for (Capteur c : zone.getMaintenance()) {
+            for (Capteur c : trierCapteurs(zone.getMaintenance())) {
                 System.out.println(idx + ". " + c.getClass().getSimpleName() + 
                     " - " + (c.isActif() ? "ACTIF" : "SUSPENDU") + " | Seuils: " + c.getSeuilMin() + "-" + c.getSeuilMax());
                 idx++;
@@ -608,7 +794,7 @@ public class Ferme {
                 if (culture.getTerre().isEmpty()) {
                     System.out.println("  Aucune culture");
                 } else {
-                    for (Plantation p : culture.getTerre()) {
+                    for (Plantation p : trierPlantations(culture.getTerre(), ferme.getModeTri())) {
                         System.out.println("  " + idx + ". Plantation - Semis: " + p.getDate_plant() + 
                             " | Récolte: " + p.getDate_rec() + " | pH: " + p.getPhMin() + "-" + 
                             p.getPhMax() + " | Stade: " + p.getEpan());
@@ -636,7 +822,7 @@ public class Ferme {
         }
 
         System.out.println("\nPlantations disponibles dans la zone " + culture.getNom() + ":");
-        List<Plantation> plantations = new ArrayList<>(culture.getTerre());
+        List<Plantation> plantations = trierPlantations(culture.getTerre(), ferme.getModeTri());
         for (int i = 0; i < plantations.size(); i++) {
             Plantation plantation = plantations.get(i);
             System.out.println((i + 1) + ". Semis: " + plantation.getDate_plant() +
@@ -672,7 +858,7 @@ public class Ferme {
                     System.out.println("  Aucune plantation");
                 } else {
                     int idx = 1;
-                    for (Plantation plantation : culture.getTerre()) {
+                    for (Plantation plantation : trierPlantations(culture.getTerre(), ferme.getModeTri())) {
                         System.out.println("  " + idx + ". Semis: " + plantation.getDate_plant() +
                             " | Récolte: " + plantation.getDate_rec() +
                             " | Stade: " + plantation.getEpan());
@@ -707,7 +893,7 @@ public class Ferme {
                     System.out.println("  Aucune plantation enregistrée.");
                 } else {
                     int idx = 1;
-                    for (Plantation plantation : culture.getTerre()) {
+                    for (Plantation plantation : trierPlantations(culture.getTerre(), ferme.getModeTri())) {
                         System.out.println("  " + idx + ". Semis: " + plantation.getDate_plant() +
                             " | Récolte: " + plantation.getDate_rec() +
                             " | Stade: " + plantation.getEpan() +
@@ -737,6 +923,7 @@ public class Ferme {
             System.out.println("║ 3. Lister les animaux                              ║");
             System.out.println("║ 4. Afficher le programme d'alimentation            ║");
             System.out.println("║ 5. Enregistrer événement sanitaire                 ║");
+            System.out.println("║ 6. Rapport sanitaire détaillé                      ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
             System.out.print("Votre choix: ");
@@ -757,6 +944,9 @@ public class Ferme {
                     break;
                 case "5":
                     enregistrerEvenementSanitaireInteractif(scanner, ferme);
+                    break;
+                case "6":
+                    afficherRapportEvenementsSanitaires(ferme);
                     break;
                 case "0":
                     continuer = false;
@@ -861,7 +1051,7 @@ public class Ferme {
                     System.out.println("  Aucun animal");
                 } else {
                     int idx = 1;
-                    for (Animal a : animalerie.getKouri()) {
+                    for (Animal a : trierAnimaux(animalerie.getKouri())) {
                         System.out.println("  " + idx + ". " + a.getGen() + " - Âge: " + a.getAge() + 
                             "ans | Poids: " + a.getPoids() + "kg | État: " + a.getSante() +
                             " | Alimentation: " + formatProgrammeAlimentaire(a.getPg()));
@@ -876,7 +1066,7 @@ public class Ferme {
                     System.out.println("  Aucun poisson");
                 } else {
                     int idx = 1;
-                    for (Poisson p : aquacole.getAquarium()) {
+                    for (Poisson p : trierPoissons(aquacole.getAquarium())) {
                         System.out.println("  " + idx + ". " + p.getEspece() + 
                             " | Alimentation: " + p.getPg().getQuantity() + "kg de " + 
                             p.getPg().getTypealiment());
@@ -908,7 +1098,7 @@ public class Ferme {
                     System.out.println("  Aucun animal");
                 } else {
                     int idx = 1;
-                    for (Animal animal : animalerie.getKouri()) {
+                    for (Animal animal : trierAnimaux(animalerie.getKouri())) {
                         System.out.println("  " + idx + ". " + animal.getGen() +
                             " | Programme: " + formatProgrammeAlimentaire(animal.getPg()));
                         idx++;
@@ -930,6 +1120,31 @@ public class Ferme {
         return programme.getQuantity() + " kg de " + programme.getTypealiment();
     }
 
+    private static void afficherRapportEvenementsSanitaires(Ferme ferme) {
+        System.out.println("\n╔════════════════════════════════════════════════════╗");
+        System.out.println("║     RAPPORT DÉTAILLÉ DES ÉVÉNEMENTS SANITAIRES     ║");
+        System.out.println("╚════════════════════════════════════════════════════╝");
+        System.out.print(ferme.rapportEvenementsSanitairesDetaille());
+    }
+
+    private static void changerTriGlobalInteractif(Scanner scanner, Ferme ferme) {
+        System.out.println("\nTri actuel: " + (ferme.getModeTri() == TriMode.DATE ? "DATE" : "ALPHABETIQUE"));
+        System.out.println("1. Ordre alphabétique");
+        System.out.println("2. Par date");
+        System.out.print("Choix: ");
+
+        String choix = scanner.nextLine().trim();
+        if ("2".equals(choix)) {
+            ferme.setModeTri(TriMode.DATE);
+            System.out.println("Tri global réglé sur DATE.");
+        } else if ("1".equals(choix)) {
+            ferme.setModeTri(TriMode.ALPHABETIQUE);
+            System.out.println("Tri global réglé sur ALPHABETIQUE.");
+        } else {
+            System.out.println("Choix invalide.");
+        }
+    }
+
     private static void enregistrerEvenementSanitaireInteractif(Scanner scanner, Ferme ferme) {
         Animalerie animalerie = (Animalerie) choisirZoneParType(scanner, ferme, Animalerie.class);
         if (animalerie == null || animalerie.getKouri().isEmpty()) {
@@ -938,7 +1153,7 @@ public class Ferme {
         }
 
         System.out.println("\nAnimaux disponibles:");
-        List<Animal> animaux = new ArrayList<>(animalerie.getKouri());
+        List<Animal> animaux = trierAnimaux(animalerie.getKouri());
         for (int i = 0; i < animaux.size(); i++) {
             Animal a = animaux.get(i);
             System.out.println((i + 1) + ". " + a.getGen() + " (ID: " + a.getId() + ")");
@@ -1063,7 +1278,7 @@ public class Ferme {
         }
 
         int idx = 1;
-        for (Capteur c : zone.getMaintenance()) {
+        for (Capteur c : trierCapteurs(zone.getMaintenance())) {
             System.out.println(idx + ". " + c.getClass().getSimpleName() + 
                 " - " + (c.isActif() ? "ACTIF" : "SUSPENDU") + 
                 " | Seuils: " + c.getSeuilMin() + " à " + c.getSeuilMax());
