@@ -3,16 +3,21 @@ public class Plantation {
     private LocalDate date_plant;
     private LocalDate date_rec;
     private Stadedecroissance epan;
+    private String type;
     private double phMax;
     private double phMin;
     private double humidite;
     public Plantation(LocalDate date_plant, LocalDate date_rec, Stadedecroissance epan, double phMax, double phMin, double humidite) {
+        this(date_plant, date_rec, epan, phMax, phMin, humidite, null);
+    }
+    public Plantation(LocalDate date_plant, LocalDate date_rec, Stadedecroissance epan, double phMax, double phMin, double humidite, String type) {
         this.date_plant = date_plant;
         this.date_rec = date_rec;
         this.epan = epan;
         this.phMax = phMax;
         this.phMin = phMin;
         this.humidite = humidite;
+        this.type = type;
     }
     public LocalDate getDate_plant() {
         return date_plant;
@@ -31,6 +36,12 @@ public class Plantation {
     }
     public void setEpan(Stadedecroissance epan) {
         this.epan = epan;
+    }
+    public String getType() {
+        return type;
+    }
+    public void setType(String type) {
+        this.type = type;
     }
     public double getPhMax() {
         return phMax;

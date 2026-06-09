@@ -250,6 +250,11 @@ public class Ferme {
     // ============================================================
 
     public static void main(String[] args) {
+        if (args == null || args.length == 0 || !"console".equalsIgnoreCase(args[0])) {
+            javax.swing.SwingUtilities.invokeLater(() -> new FermeGUI(new Ferme()).setVisible(true));
+            return;
+        }
+
         Scanner scanner = new Scanner(System.in);
         Ferme ferme = new Ferme();
         
@@ -294,24 +299,25 @@ public class Ferme {
 
     private static void afficherBienvenue() {
         System.out.println("\n╔════════════════════════════════════════════════════╗");
-        System.out.println("║     BIENVENUE DANS SMART FARMING v1.0              ║");
-        System.out.println("║  Système de Gestion Intelligent de Ferme           ║");
+        System.out.println("║          SMART FARMING BY TOUIL & KHELIFI          ║");
+        System.out.println("║        Bienvenue dans votre ferme intelligente     ║");
+        System.out.println("║      Système de gestion intelligent de ferme       ║");
         System.out.println("╚════════════════════════════════════════════════════╝\n");
     }
 
     private static void afficherMenuPrincipal() {
         System.out.println("\n╔════════════════════════════════════════════════════╗");
-        System.out.println("║              MENU PRINCIPAL                         ║");
+        System.out.println("║               MENU PRINCIPAL                       ║");
         System.out.println("╠════════════════════════════════════════════════════╣");
-        System.out.println("║ 1. Gérer les zones et entités                      ║");
+        System.out.println("║ 1. Gérer les zones et leurs éléments               ║");
         System.out.println("║ 2. Gérer les cultures                              ║");
         System.out.println("║ 3. Gérer les animaux                               ║");
         System.out.println("║ 4. Gérer les capteurs et relevés                   ║");
         System.out.println("║ 5. Gérer les alertes                               ║");
-        System.out.println("║ 6. Afficher le résumé de la ferme                  ║");
-        System.out.println("║ 0. Quitter                                         ║");
+        System.out.println("║ 6. Afficher le résumé général de la ferme          ║");
+        System.out.println("║ 0. Quitter le programme                            ║");
         System.out.println("╚════════════════════════════════════════════════════╝");
-        System.out.print("→ Votre choix: ");
+        System.out.print("Votre choix: ");
     }
 
     // ========== GESTION DES ZONES ==========
@@ -328,7 +334,7 @@ public class Ferme {
             System.out.println("║ 5. Enregistrer production                          ║");
             System.out.println("║ 0. Retour au menu principal                        ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
-            System.out.print("→ Votre choix: ");
+            System.out.print("Votre choix: ");
 
             String choix = scanner.nextLine().trim();
             switch (choix) {
@@ -351,7 +357,7 @@ public class Ferme {
                     continuer = false;
                     break;
                 default:
-                    System.out.println("❌ Choix invalide.");
+                    System.out.println("Erreur: choix invalide.");
             }
         }
     }
@@ -364,7 +370,7 @@ public class Ferme {
         System.out.println("  1. Culture (cultures légumières, céréales)");
         System.out.println("  2. Animalerie (ruminants, volailles)");
         System.out.println("  3. Aquacole (bassins de poissons)");
-        System.out.print("→ Choix: ");
+        System.out.print("Choix: ");
         
         try {
             String type = scanner.nextLine().trim();
@@ -372,37 +378,37 @@ public class Ferme {
             String nom = scanner.nextLine().trim();
             
             if (nom == null || nom.isEmpty()) {
-                System.out.println("❌ Le nom de la zone ne peut pas être vide.");
+                System.out.println("Erreur: le nom de la zone ne peut pas être vide.");
                 return;
             }
 
             ZoneGeographique zone = null;
             if ("1".equals(type)) {
                 zone = new Culture(nom);
-                System.out.println("✓ Zone Culture créée: " + nom);
+                System.out.println("Zone Culture créée: " + nom);
             } else if ("2".equals(type)) {
                 zone = new Animalerie(nom);
-                System.out.println("✓ Zone Animalerie créée: " + nom);
+                System.out.println("Zone Animalerie créée: " + nom);
             } else if ("3".equals(type)) {
                 zone = new Aquacole(nom);
-                System.out.println("✓ Zone Aquacole créée: " + nom);
+                System.out.println("Zone Aquacole créée: " + nom);
             } else {
-                System.out.println("❌ Type de zone invalide.");
+                System.out.println("Erreur: type de zone invalide.");
                 return;
             }
 
             if (ferme.ajouterZone(zone)) {
-                System.out.println("✓ Zone ajoutée avec succès (ID: " + zone.getId() + ")");
+                System.out.println("Zone ajoutée avec succès (ID: " + zone.getId() + ")");
             }
         } catch (FermeException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println("Erreur: " + e.getMessage());
         }
     }
 
     private static void listerZones(Ferme ferme) {
         List<ZoneGeographique> zones = ferme.getZones();
         if (zones.isEmpty()) {
-            System.out.println("\n⚠ Aucune zone disponible.");
+            System.out.println("\nAttention: aucune zone disponible.");
             return;
         }
 
@@ -413,7 +419,7 @@ public class Ferme {
         int index = 1;
         for (ZoneGeographique zone : zones) {
             String type = zone.getClass().getSimpleName();
-            String etat = zone.isActif() ? "🟢 ACTIF" : "🔴 SUSPENDU";
+            String etat = zone.isActif() ? "ACTIF" : "SUSPENDU";
             System.out.println(String.format("%d. %s (%s) - %s - %d entité(s)",
                 index, zone.getNom(), type, etat, zone.getNombreEntites()));
             index++;
@@ -424,18 +430,18 @@ public class Ferme {
         ZoneGeographique zone = choisirZoneInteractif(scanner, ferme);
         if (zone == null) return;
 
-        System.out.println("\nÉtat actuel: " + (zone.isActif() ? "🟢 ACTIF" : "🔴 SUSPENDU"));
+        System.out.println("\nÉtat actuel: " + (zone.isActif() ? "ACTIF" : "SUSPENDU"));
         System.out.println("1. Activer");
         System.out.println("2. Désactiver");
-        System.out.print("→ Choix: ");
+        System.out.print("Choix: ");
         
         String choix = scanner.nextLine().trim();
         if ("1".equals(choix)) {
             zone.activer();
-            System.out.println("✓ Zone activée");
+            System.out.println("Zone activée");
         } else if ("2".equals(choix)) {
             zone.desactiver();
-            System.out.println("✓ Zone suspendue");
+            System.out.println("Zone suspendue");
         }
     }
 
@@ -449,7 +455,7 @@ public class Ferme {
         System.out.println("Nom: " + zone.getNom());
         System.out.println("ID: " + zone.getId());
         System.out.println("Type: " + zone.getClass().getSimpleName());
-        System.out.println("État: " + (zone.isActif() ? "🟢 ACTIF" : "🔴 SUSPENDU"));
+        System.out.println("État: " + (zone.isActif() ? "ACTIF" : "SUSPENDU"));
         System.out.println("Nombre d'entités: " + zone.getNombreEntites());
         System.out.println("Production enregistrée: " + zone.getProduction().size() + " fois");
 
@@ -501,7 +507,7 @@ public class Ferme {
             int idx = 1;
             for (Capteur c : zone.getMaintenance()) {
                 System.out.println(idx + ". " + c.getClass().getSimpleName() + 
-                    " - " + (c.isActif() ? "🟢" : "🔴") + " | Seuils: " + c.getSeuilMin() + "-" + c.getSeuilMax());
+                    " - " + (c.isActif() ? "ACTIF" : "SUSPENDU") + " | Seuils: " + c.getSeuilMin() + "-" + c.getSeuilMax());
                 idx++;
             }
         }
@@ -514,7 +520,7 @@ public class Ferme {
         System.out.print("Valeur de production: ");
         double valeur = lireDouble(scanner.nextLine());
         ferme.enregistrerProduction(zone, valeur);
-        System.out.println("✓ Production enregistrée: " + valeur + " unités");
+        System.out.println("Production enregistrée: " + valeur + " unités");
     }
 
     // ========== GESTION DES CULTURES ==========
@@ -530,7 +536,7 @@ public class Ferme {
             System.out.println("║ 4. Générer un rapport des cultures                  ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
-            System.out.print("→ Votre choix: ");
+            System.out.print("Votre choix: ");
 
             String choix = scanner.nextLine().trim();
             switch (choix) {
@@ -550,7 +556,7 @@ public class Ferme {
                     continuer = false;
                     break;
                 default:
-                    System.out.println("❌ Choix invalide.");
+                    System.out.println("Erreur: choix invalide.");
             }
         }
     }
@@ -579,10 +585,10 @@ public class Ferme {
 
             Plantation plantation = new Plantation(plant, recolte, stade, phMax, phMin, humidite);
             if (ferme.ajouterCulture(culture, plantation)) {
-                System.out.println("✓ Culture ajoutée avec succès");
+                System.out.println("Culture ajoutée avec succès");
             }
         } catch (FermeException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println("Erreur: " + e.getMessage());
         }
     }
 
@@ -614,7 +620,7 @@ public class Ferme {
         }
 
         if (!trouve) {
-            System.out.println("⚠ Aucune zone de culture disponible.");
+            System.out.println("Attention: aucune zone de culture disponible.");
         }
     }
 
@@ -625,7 +631,7 @@ public class Ferme {
         }
 
         if (culture.getTerre().isEmpty()) {
-            System.out.println("⚠ Aucune plantation dans cette zone.");
+            System.out.println("Attention: aucune plantation dans cette zone.");
             return;
         }
 
@@ -637,17 +643,17 @@ public class Ferme {
                 " | Récolte: " + plantation.getDate_rec() + " | Stade actuel: " + plantation.getEpan());
         }
 
-        System.out.print("→ Sélectionner une plantation: ");
+        System.out.print("Sélectionner une plantation: ");
         int index = lireInt(scanner.nextLine()) - 1;
         if (index < 0 || index >= plantations.size()) {
-            System.out.println("❌ Sélection invalide.");
+            System.out.println("Erreur: sélection invalide.");
             return;
         }
 
         System.out.print("Nouveau stade (Semis/Croissance/Maturite/Recolte): ");
         Stadedecroissance nouveauStade = lireStade(scanner.nextLine());
         plantations.get(index).setEpan(nouveauStade);
-        System.out.println("✓ Stade de croissance mis à jour: " + nouveauStade);
+        System.out.println("Stade de croissance mis à jour: " + nouveauStade);
     }
 
     private static void afficherStadesCultures(Ferme ferme) {
@@ -678,7 +684,7 @@ public class Ferme {
         }
 
         if (!trouve) {
-            System.out.println("⚠ Aucune zone de culture disponible.");
+            System.out.println("Attention: aucune zone de culture disponible.");
         }
     }
 
@@ -715,7 +721,7 @@ public class Ferme {
         }
 
         if (!trouve) {
-            System.out.println("⚠ Aucune zone de culture disponible.");
+            System.out.println("Attention: aucune zone de culture disponible.");
         }
     }
 
@@ -733,7 +739,7 @@ public class Ferme {
             System.out.println("║ 5. Enregistrer événement sanitaire                 ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
-            System.out.print("→ Votre choix: ");
+            System.out.print("Votre choix: ");
 
             String choix = scanner.nextLine().trim();
             switch (choix) {
@@ -756,7 +762,7 @@ public class Ferme {
                     continuer = false;
                     break;
                 default:
-                    System.out.println("❌ Choix invalide.");
+                    System.out.println("Erreur: choix invalide.");
             }
         }
     }
@@ -771,7 +777,7 @@ public class Ferme {
             System.out.println("╚════════════════════════════════════════╝");
 
             System.out.println("Espèce: 1=Ruminant  2=Volaille");
-            System.out.print("→ Choix: ");
+            System.out.print("Choix: ");
             espece type = "1".equals(scanner.nextLine().trim()) ? espece.Ruminant : espece.Volaille;
 
             System.out.print("Âge (années): ");
@@ -807,12 +813,12 @@ public class Ferme {
             );
 
             if (ferme.ajouterAnimal(animalerie, animal)) {
-                System.out.println("✓ Animal ajouté: " + type + " (ID: " + animal.getId() + ")");
+                System.out.println("Animal ajouté: " + type + " (ID: " + animal.getId() + ")");
             }
         } catch (FermeException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println("Erreur: " + e.getMessage());
         } catch (IllegalArgumentException e) {
-            System.out.println("❌ État de santé invalide: " + e.getMessage());
+            System.out.println("Erreur: état de santé invalide: " + e.getMessage());
         }
     }
 
@@ -820,18 +826,22 @@ public class Ferme {
         Aquacole aquacole = (Aquacole) choisirZoneParType(scanner, ferme, Aquacole.class);
         if (aquacole == null) return;
 
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║     AJOUTER UN POISSON                  ║");
-        System.out.println("╚════════════════════════════════════════╝");
+        try {
+            System.out.println("\n╔════════════════════════════════════════╗");
+            System.out.println("║     AJOUTER UN POISSON                  ║");
+            System.out.println("╚════════════════════════════════════════╝");
 
-        System.out.print("Espèce: ");
-        String espece = scanner.nextLine().trim();
-        System.out.print("Quantité d'alimentation (kg/jour): ");
-        double quantite = lireDouble(scanner.nextLine());
+            System.out.print("Espèce: ");
+            String espece = scanner.nextLine().trim();
+            System.out.print("Quantité d'alimentation (kg/jour): ");
+            double quantite = lireDouble(scanner.nextLine());
 
-        Poisson poisson = new Poisson(espece, new ProgrammeAlimentaire(quantite, "Granule"));
-        if (ferme.ajouterPoisson(aquacole, poisson)) {
-            System.out.println("✓ Poisson ajouté: " + espece);
+            Poisson poisson = new Poisson(espece, new ProgrammeAlimentaire(quantite, "Granule"));
+            if (ferme.ajouterPoisson(aquacole, poisson)) {
+                System.out.println("Poisson ajouté: " + espece);
+            }
+        } catch (FermeException e) {
+            System.out.println("Erreur: " + e.getMessage());
         }
     }
 
@@ -878,7 +888,7 @@ public class Ferme {
         }
 
         if (!trouve) {
-            System.out.println("⚠ Aucune zone d'élevage disponible.");
+            System.out.println("Attention: aucune zone d'élevage disponible.");
         }
     }
 
@@ -909,7 +919,7 @@ public class Ferme {
         }
 
         if (!trouve) {
-            System.out.println("⚠ Aucune zone d'élevage disponible.");
+            System.out.println("Attention: aucune zone d'élevage disponible.");
         }
     }
 
@@ -923,7 +933,7 @@ public class Ferme {
     private static void enregistrerEvenementSanitaireInteractif(Scanner scanner, Ferme ferme) {
         Animalerie animalerie = (Animalerie) choisirZoneParType(scanner, ferme, Animalerie.class);
         if (animalerie == null || animalerie.getKouri().isEmpty()) {
-            System.out.println("⚠ Aucun animal disponible.");
+            System.out.println("Attention: aucun animal disponible.");
             return;
         }
 
@@ -934,10 +944,10 @@ public class Ferme {
             System.out.println((i + 1) + ". " + a.getGen() + " (ID: " + a.getId() + ")");
         }
 
-        System.out.print("→ Sélectionner un animal: ");
+        System.out.print("Sélectionner un animal: ");
         int idx = lireInt(scanner.nextLine()) - 1;
         if (idx < 0 || idx >= animaux.size()) {
-            System.out.println("❌ Sélection invalide.");
+            System.out.println("Erreur: sélection invalide.");
             return;
         }
 
@@ -949,7 +959,7 @@ public class Ferme {
 
         EvenementSanitaire evt = new EvenementSanitaire(animal, LocalDate.now(), description, variation);
         ferme.enregistrerEvenementSanitaire(evt);
-        System.out.println("✓ Événement sanitaire enregistré");
+        System.out.println("Événement sanitaire enregistré");
     }
 
     // ========== GESTION DES CAPTEURS ==========
@@ -965,7 +975,7 @@ public class Ferme {
             System.out.println("║ 4. Afficher l'historique des relevés               ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
-            System.out.print("→ Votre choix: ");
+            System.out.print("Votre choix: ");
 
             String choix = scanner.nextLine().trim();
             switch (choix) {
@@ -985,7 +995,7 @@ public class Ferme {
                     continuer = false;
                     break;
                 default:
-                    System.out.println("❌ Choix invalide.");
+                    System.out.println("Erreur: choix invalide.");
             }
         }
     }
@@ -1004,7 +1014,7 @@ public class Ferme {
             System.out.println("  3. Eau (qualité)");
             System.out.println("  4. GPS (position)");
             System.out.println("  5. Biométrique (animaux)");
-            System.out.print("→ Choix: ");
+            System.out.print("Choix: ");
 
             String type = scanner.nextLine().trim();
             Capteur capteur = null;
@@ -1015,7 +1025,7 @@ public class Ferme {
             else if ("4".equals(type)) capteur = new GPS();
             else if ("5".equals(type)) capteur = new Biometrique();
             else {
-                System.out.println("❌ Type invalide.");
+                System.out.println("Erreur: type invalide.");
                 return;
             }
 
@@ -1031,11 +1041,11 @@ public class Ferme {
             capteur.configurerSeuils(min, max);
 
             if (ferme.ajouterCapteur(zone, capteur)) {
-                System.out.println("✓ Capteur " + capteur.getClass().getSimpleName() + " ajouté");
+                System.out.println("Capteur " + capteur.getClass().getSimpleName() + " ajouté");
                 System.out.println("  Seuils: " + min + " - " + max);
             }
         } catch (FermeException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println("Erreur: " + e.getMessage());
         }
     }
 
@@ -1048,14 +1058,14 @@ public class Ferme {
         System.out.println("╚════════════════════════════════════════════════════╝");
 
         if (zone.getMaintenance().isEmpty()) {
-            System.out.println("⚠ Aucun capteur.");
+            System.out.println("Attention: aucun capteur.");
             return;
         }
 
         int idx = 1;
         for (Capteur c : zone.getMaintenance()) {
             System.out.println(idx + ". " + c.getClass().getSimpleName() + 
-                " - " + (c.isActif() ? "🟢 ACTIF" : "🔴 SUSPENDU") + 
+                " - " + (c.isActif() ? "ACTIF" : "SUSPENDU") + 
                 " | Seuils: " + c.getSeuilMin() + " à " + c.getSeuilMax());
             idx++;
         }
@@ -1064,7 +1074,7 @@ public class Ferme {
     private static void enregistrerReleveInteractif(Scanner scanner, Ferme ferme) {
         ZoneGeographique zone = choisirZoneInteractif(scanner, ferme);
         if (zone == null || zone.getMaintenance().isEmpty()) {
-            System.out.println("⚠ Aucun capteur disponible.");
+            System.out.println("Attention: aucun capteur disponible.");
             return;
         }
 
@@ -1075,16 +1085,16 @@ public class Ferme {
                 System.out.println((i + 1) + ". " + capteurs[i].getClass().getSimpleName());
             }
 
-            System.out.print("→ Sélectionner un capteur: ");
+            System.out.print("Sélectionner un capteur: ");
             int idx = lireInt(scanner.nextLine()) - 1;
             if (idx < 0 || idx >= capteurs.length) {
-                System.out.println("❌ Sélection invalide.");
+                System.out.println("Erreur: sélection invalide.");
                 return;
             }
 
             Capteur capteur = capteurs[idx];
             if (!capteur.isActif()) {
-                System.out.println("⚠ Ce capteur est suspendu.");
+                System.out.println("Attention: ce capteur est suspendu.");
                 return;
             }
 
@@ -1095,8 +1105,8 @@ public class Ferme {
                 double lon = lireDouble(scanner.nextLine());
                 ReleveGPS releveGps = new ReleveGPS(capteur, lat, lon, LocalDateTime.now());
                 boolean alerte = ferme.enregistrerReleveGps(capteur, releveGps);
-                System.out.println("✓ Relevé GPS enregistré");
-                if (alerte) System.out.println("⚠ Alerte GPS déclenchée!");
+                System.out.println("Relevé GPS enregistré");
+                if (alerte) System.out.println("Alerte GPS déclenchée!");
             } else {
                 System.out.print("Valeur: ");
                 double valeur = lireDouble(scanner.nextLine());
@@ -1107,10 +1117,10 @@ public class Ferme {
                 }
                 ReleveNum releve = new ReleveNum(capteur, valeur, unite, LocalDateTime.now());
                 ferme.enregistrerReleve(capteur, releve);
-                System.out.println("✓ Relevé enregistré: " + valeur + " " + unite);
+                System.out.println("Relevé enregistré: " + valeur + " " + unite);
             }
         } catch (FermeException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println("Erreur: " + e.getMessage());
         }
     }
 
@@ -1122,7 +1132,7 @@ public class Ferme {
         System.out.println("╚════════════════════════════════════════════════════╝");
 
         if (releves.isEmpty()) {
-            System.out.println("⚠ Aucun relevé.");
+            System.out.println("Attention: aucun relevé.");
             return;
         }
 
@@ -1157,7 +1167,7 @@ public class Ferme {
             System.out.println("║ 4. Afficher historique complet                     ║");
             System.out.println("║ 0. Retour                                          ║");
             System.out.println("╚════════════════════════════════════════════════════╝");
-            System.out.print("→ Votre choix: ");
+            System.out.print("Votre choix: ");
 
             String choix = scanner.nextLine().trim();
             switch (choix) {
@@ -1177,7 +1187,7 @@ public class Ferme {
                     continuer = false;
                     break;
                 default:
-                    System.out.println("❌ Choix invalide.");
+                    System.out.println("Erreur: choix invalide.");
             }
         }
     }
@@ -1190,14 +1200,14 @@ public class Ferme {
         System.out.println("╚════════════════════════════════════════════════════╝");
 
         if (alertes.isEmpty()) {
-            System.out.println("✓ Aucune alerte active.");
+            System.out.println("Aucune alerte active.");
             return;
         }
 
         for (int i = 0; i < alertes.size(); i++) {
             Alerte alerte = alertes.get(i);
-            String emoji = "Critique".equals(alerte.getGrv().toString()) ? "🔴" : "🟡";
-            System.out.println((i + 1) + ". " + emoji + " " + alerte.getGrv() + 
+            String gravite = alerte.getGrv().toString();
+            System.out.println((i + 1) + ". " + gravite + 
                 " | " + alerte.getMessage() + " | Date: " + alerte.getDate());
         }
     }
@@ -1205,24 +1215,24 @@ public class Ferme {
     private static void acquitterAlerteInteractif(Scanner scanner, Ferme ferme) {
         List<Alerte> alertes = ferme.alertesActives();
         if (alertes.isEmpty()) {
-            System.out.println("⚠ Aucune alerte active.");
+            System.out.println("Attention: aucune alerte active.");
             return;
         }
 
         afficherAlertesActives(ferme);
-        System.out.print("→ Numéro de l'alerte à acquitter: ");
+        System.out.print("Numéro de l'alerte à acquitter: ");
         int idx = lireInt(scanner.nextLine()) - 1;
 
         if (idx >= 0 && idx < alertes.size()) {
             ferme.acquitterAlerte(alertes.get(idx));
-            System.out.println("✓ Alerte acquittée");
+            System.out.println("Alerte acquittée");
         }
     }
 
     private static void supprimerAlerteInteractif(Scanner scanner, Ferme ferme) {
         ZoneGeographique zone = choisirZoneInteractif(scanner, ferme);
         if (zone == null || zone.getAlt().isEmpty()) {
-            System.out.println("⚠ Aucune alerte dans cette zone.");
+            System.out.println("Attention: aucune alerte dans cette zone.");
             return;
         }
 
@@ -1233,12 +1243,12 @@ public class Ferme {
             System.out.println((i + 1) + ". " + a.getGrv() + " - " + a.getMessage());
         }
 
-        System.out.print("→ Numéro à supprimer: ");
+        System.out.print("Numéro à supprimer: ");
         int idx = lireInt(scanner.nextLine()) - 1;
 
         if (idx >= 0 && idx < alertes.size()) {
             ferme.supprimerAlerte(zone, alertes.get(idx));
-            System.out.println("✓ Alerte supprimée");
+            System.out.println("Alerte supprimée");
         }
     }
 
@@ -1250,13 +1260,13 @@ public class Ferme {
         System.out.println("╚════════════════════════════════════════════════════╝");
 
         if (alertes.isEmpty()) {
-            System.out.println("⚠ Aucune alerte.");
+            System.out.println("Attention: aucune alerte.");
             return;
         }
 
         for (int i = 0; i < alertes.size(); i++) {
             Alerte alerte = alertes.get(i);
-            String etat = alerte.isAcquittee() ? "✓ ACQUITTÉE" : "⚠ ACTIVE";
+            String etat = alerte.isAcquittee() ? "ACQUITTÉE" : "ACTIVE";
             System.out.println((i + 1) + ". " + alerte.getGrv() + " | " + etat + 
                 " | " + alerte.getMessage() + " | Date: " + alerte.getDate());
         }
@@ -1270,16 +1280,16 @@ public class Ferme {
 
         List<ZoneGeographique> zones = ferme.getZones();
         if (zones.isEmpty()) {
-            System.out.println("⚠ Aucune zone.");
+            System.out.println("Attention: aucune zone.");
             return;
         }
 
-        System.out.println("\n📊 ZONES GÉOGRAPHIQUES: " + zones.size());
+        System.out.println("\nZones géographiques: " + zones.size());
         int nbCultures = 0, nbAnimaux = 0, nbPoissons = 0, nbCapteurs = 0;
 
         for (ZoneGeographique zone : zones) {
-            System.out.println("\n  📍 " + zone.getNom() + " (" + zone.getClass().getSimpleName() + ")");
-            System.out.println("     État: " + (zone.isActif() ? "🟢 ACTIF" : "🔴 SUSPENDU"));
+            System.out.println("\n  - " + zone.getNom() + " (" + zone.getClass().getSimpleName() + ")");
+            System.out.println("     État: " + (zone.isActif() ? "ACTIF" : "SUSPENDU"));
             System.out.println("     Entités: " + zone.getNombreEntites());
             System.out.println("     Capteurs: " + zone.getMaintenance().size());
             System.out.println("     Alertes: " + zone.getAlt().size());
@@ -1298,22 +1308,22 @@ public class Ferme {
             nbCapteurs += zone.getMaintenance().size();
         }
 
-        System.out.println("\n📈 STATISTIQUES:");
-        System.out.println("  • Cultures: " + nbCultures);
-        System.out.println("  • Animaux: " + nbAnimaux);
-        System.out.println("  • Poissons: " + nbPoissons);
-        System.out.println("  • Capteurs: " + nbCapteurs);
-        System.out.println("  • Relevés: " + ferme.getHistoriqueReleves().size());
-        System.out.println("  • Alertes totales: " + ferme.getHistoriqueAlertes().size());
-        System.out.println("  • Alertes actives: " + ferme.alertesActives().size());
-        System.out.println("  • Événements sanitaires: " + ferme.getEvenementsSanitaires().size());
+        System.out.println("\nStatistiques:");
+        System.out.println("  Cultures: " + nbCultures);
+        System.out.println("  Animaux: " + nbAnimaux);
+        System.out.println("  Poissons: " + nbPoissons);
+        System.out.println("  Capteurs: " + nbCapteurs);
+        System.out.println("  Relevés: " + ferme.getHistoriqueReleves().size());
+        System.out.println("  Alertes totales: " + ferme.getHistoriqueAlertes().size());
+        System.out.println("  Alertes actives: " + ferme.alertesActives().size());
+        System.out.println("  Événements sanitaires: " + ferme.getEvenementsSanitaires().size());
     }
 
     // ========== FONCTIONS UTILITAIRES ==========
     private static ZoneGeographique choisirZoneInteractif(Scanner scanner, Ferme ferme) {
         List<ZoneGeographique> zones = ferme.getZones();
         if (zones.isEmpty()) {
-            System.out.println("⚠ Aucune zone disponible.");
+            System.out.println("Attention: aucune zone disponible.");
             return null;
         }
 
@@ -1323,10 +1333,10 @@ public class Ferme {
                 " (" + zones.get(i).getClass().getSimpleName() + ")");
         }
 
-        System.out.print("→ Sélectionner une zone: ");
+        System.out.print("Sélectionner une zone: ");
         int idx = lireInt(scanner.nextLine()) - 1;
         if (idx < 0 || idx >= zones.size()) {
-            System.out.println("❌ Sélection invalide.");
+            System.out.println("Erreur: sélection invalide.");
             return null;
         }
 
@@ -1344,7 +1354,7 @@ public class Ferme {
         }
 
         if (filtered.isEmpty()) {
-            System.out.println("⚠ Aucune zone de ce type disponible.");
+            System.out.println("Attention: aucune zone de ce type disponible.");
             return null;
         }
 
@@ -1353,10 +1363,10 @@ public class Ferme {
             System.out.println((i + 1) + ". " + filtered.get(i).getNom());
         }
 
-        System.out.print("→ Sélectionner: ");
+        System.out.print("Sélectionner: ");
         int idx = lireInt(scanner.nextLine()) - 1;
         if (idx < 0 || idx >= filtered.size()) {
-            System.out.println("❌ Sélection invalide.");
+            System.out.println("Erreur: sélection invalide.");
             return null;
         }
 
